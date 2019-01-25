@@ -8,6 +8,7 @@ import (
 	"github.com/nalej/device-manager/internal/pkg/server/device"
 	"github.com/nalej/grpc-authx-go"
 	"github.com/nalej/grpc-device-go"
+	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-device-manager-go"
 	"github.com/nalej/grpc-utils/pkg/tools"
 	"fmt"
@@ -36,6 +37,7 @@ func NewService(conf Config) *Service {
 type Clients struct {
 	AuthxClient grpc_authx_go.AuthxClient
 	DevicesClient grpc_device_go.DevicesClient
+	AppsClient grpc_application_go.ApplicationsClient
 }
 
 // GetClients creates the required connections with the remote clients.
@@ -52,8 +54,9 @@ func (s * Service) GetClients() (* Clients, derrors.Error) {
 
 	aClient := grpc_authx_go.NewAuthxClient(authxConn)
 	dClient := grpc_device_go.NewDevicesClient(smConn)
+	appsClient := grpc_application_go.NewApplicationsClient(smConn)
 
-	return &Clients{aClient, dClient}, nil
+	return &Clients{aClient, dClient, appsClient}, nil
 }
 
 // Run the service, launch the REST service handler.
@@ -74,7 +77,7 @@ func (s *Service) Run() error {
 	}
 
 	// Create handlers
-	manager := device.NewManager(clients.AuthxClient, clients.DevicesClient)
+	manager := device.NewManager(clients.AuthxClient, clients.DevicesClient, clients.AppsClient)
 	handler := device.NewHandler(manager)
 
 	grpcServer := grpc.NewServer()
