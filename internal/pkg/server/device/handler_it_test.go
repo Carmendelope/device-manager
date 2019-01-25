@@ -48,6 +48,7 @@ func CreateDeviceGroup(client grpc_device_manager_go.DevicesClient, organization
 	added, err := client.AddDeviceGroup(context.Background(), addDGRequest)
 	gomega.Expect(err).To(gomega.Succeed())
 	gomega.Expect(added).ShouldNot(gomega.BeNil())
+	return added
 }
 
 var _ = ginkgo.Describe("Device service", func() {
