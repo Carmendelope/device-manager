@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: device-api
-        image: nalejregistry.azurecr.io/nalej/device-api:__NPH_VERSION
+        image: nalejregistry.azurecr.io/nalej/device-manager:__NPH_VERSION
         imagePullPolicy: Always
         args:
         - "run"
