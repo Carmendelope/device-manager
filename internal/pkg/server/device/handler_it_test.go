@@ -191,8 +191,8 @@ var _ = ginkgo.Describe("Device service", func() {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(added).ShouldNot(gomega.BeNil())
 			toRemove := &grpc_device_go.DeviceGroupId{
-				OrganizationId:       "",
-				DeviceGroupId:        "",
+				OrganizationId:       targetOrganization.OrganizationId,
+				DeviceGroupId:        added.DeviceGroupId,
 			}
 			success, err := client.RemoveDeviceGroup(context.Background(), toRemove)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -239,8 +239,8 @@ var _ = ginkgo.Describe("Device service", func() {
 			retrieved1, err := client.GetDevice(context.Background(), deviceID1)
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(retrieved1.Enabled).Should(gomega.BeFalse())
-			// first try with default connectivity disabled
-			dgT := CreateDeviceGroup(client, targetOrganization.OrganizationId, true, false)
+			// then, try with default connectivity enabled
+			dgT := CreateDeviceGroup(client, targetOrganization.OrganizationId, true, true)
 			registerRequest2 := &grpc_device_manager_go.RegisterDeviceRequest{
 				OrganizationId:       dgT.OrganizationId,
 				DeviceGroupId:        dgT.DeviceGroupId,

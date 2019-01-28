@@ -34,7 +34,7 @@ LDFLAGS=-ldflags "-X main.MainVersion=${VERSION} -X main.MainCommit=${COMMIT}"
 COVERAGE_FILE=$(TARGET)/coverage.out
 
 .PHONY: all
-all: yaml
+all: dep build test yaml image
 
 .PHONY: dep
 dep:
