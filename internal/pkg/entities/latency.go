@@ -23,6 +23,17 @@ type Latency struct {
 	Inserted int64   `json:"inserted, omitempty"`
 }
 
+func NewEmptyLatency () *Latency{
+	return &Latency{
+		OrganizationId: "",
+		DeviceGroupId: 	"",
+		DeviceId: 		"",
+		Latency: 		-1,
+		Inserted: 		0,
+	}
+}
+
+
 func NewPingLatencyFromGRPC(request * grpc_device_controller_go.RegisterLatencyRequest) *Latency{
 	return &Latency{
 		OrganizationId: request.OrganizationId,

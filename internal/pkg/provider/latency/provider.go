@@ -14,4 +14,7 @@ type Provider interface {
 	// AddPingLatency adds a new latency
 	AddPingLatency(entities.Latency ) derrors.Error
 
+	// GetLastPingLatency get the las latency measure of a device
+	GetLastPingLatency (organizationID string, deviceGroupID string, deviceID string) (*entities.Latency, derrors.Error)
+
 }

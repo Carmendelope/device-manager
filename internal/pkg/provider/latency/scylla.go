@@ -17,6 +17,7 @@ import (
 )
 // TTL -> 1 day. After 24 hours, the record will be deleted
 const ttlExpired = time.Duration(24)*time.Hour
+const rowNotFound = "not found"
 
 type ScyllaProvider struct {
 	Address string
@@ -96,6 +97,39 @@ func (sp * ScyllaProvider) AddPingLatency(latency entities.Latency ) derrors.Err
 	}
 
 	return nil
+}
+// GetLastPingLatency get the las latency measure of a device
+func (sp * ScyllaProvider) 	GetLastPingLatency (organizationID string, deviceGroupID string, deviceID string) (*entities.Latency, derrors.Error) {
+	sp.Lock()
+	defer sp.Unlock()
+
+	// check connection
+	err := sp.checkAndConnect()
+	if err != nil {
+		return nil, err
+	}
+
+	var latency entities.Latency
+	stmt, names := qb.Select("latency").Where(qb.Eq("organization_id")).
+	Where(qb.Eq("device_group_id")).Where(qb.Eq("device_id")).OrderBy("inserted", qb.DESC ).
+		Limit(1).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		"organization_id": organizationID,
+		"device_group_id": deviceGroupID,
+		"device_id": deviceID,
+	})
+
+	cqlErr := q.GetRelease(&latency)
+	if cqlErr != nil {
+		if cqlErr.Error() == rowNotFound {
+			return entities.NewEmptyLatency(), nil
+		}else{
+			return nil, derrors.AsError(err, "cannot get role")
+		}
+	}
+
+	return &latency, nil
+
 }
 
 
