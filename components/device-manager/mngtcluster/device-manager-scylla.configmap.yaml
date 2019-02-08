@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   labels:
     cluster: management
-  name: device-manager
+  name: device-manager-scylla
   namespace: __NPH_NAMESPACE
 data:
   device-manager-scylla.cql: |

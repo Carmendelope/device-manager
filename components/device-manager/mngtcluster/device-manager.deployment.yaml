@@ -20,7 +20,7 @@ spec:
         component: device-manager
     spec:
       containers:
-      - name: device-api
+      - name: device-manager
         image: __NPH_REGISTRY.azurecr.io/__NPH_REGISTRY_NAMESPACE/device-manager:__NPH_VERSION
         imagePullPolicy: Always
         args:
