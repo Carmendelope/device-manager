@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: scylla-device-manager
+  namespace: __NPH_NAMESPACE
+spec:
+  template:
+    metadata:
+      name: scylla-device-manager
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: scylladb
+        image: scylladb/scylla:2.0.0
+        command: ["/bin/bash"]
+        args: [ "./opt/node_alive.sh"]
+        tty: true
+        volumeMounts:
+        - name: device-manager-scylla
+          mountPath: /opt/device-manager-scylla.cql
+          subPath: device-manager-scylla.cql
+        - name: device-manager-scylla
+          mountPath: /opt/node_alive.sh
+          subPath: node_alive.sh
+      volumes:
+      - name: device-manager-scylla
+        configMap:
+          name: device-manager-scylla
