@@ -21,17 +21,17 @@ spec:
     spec:
       containers:
       - name: device-api
-        image: nalejregistry.azurecr.io/nalej/device-manager:__NPH_VERSION
+        image: __NPH_REGISTRY.azurecr.io/__NPH_REGISTRY_NAMESPACE/device-manager:__NPH_VERSION
         imagePullPolicy: Always
         args:
         - "run"
         - "--debug"
-        - "--systemModelAddress=system-model.nalej:8800"
-        - "--authxAddress=authx.nalej:8810"
         - "--useDBScyllaProviders=true"
         - "--scyllaDBAddress=scylladb.__NPH_NAMESPACE"
         - "--scyllaDBKeyspace=measure"
         - "--scyllaDBPort=9042"
+        - "--systemModelAddress=system-model.__NPH_NAMESPACE:8800"
+        - "--authxAddress=authx.__NPH_NAMESPACE:8810"
         securityContext:
           runAsUser: 2000
       imagePullSecrets:

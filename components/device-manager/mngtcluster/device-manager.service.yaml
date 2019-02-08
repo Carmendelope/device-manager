@@ -5,7 +5,7 @@ metadata:
   labels:
     cluster: management
     component: device-manager
-  namespace: nalej
+  namespace: __NPH_NAMESPACE
 spec:
   selector:
     cluster: management
