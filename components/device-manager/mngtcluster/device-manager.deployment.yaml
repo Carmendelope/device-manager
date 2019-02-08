@@ -28,6 +28,10 @@ spec:
         - "--debug"
         - "--systemModelAddress=system-model.nalej:8800"
         - "--authxAddress=authx.nalej:8810"
+        - "--useDBScyllaProviders=true"
+        - "--scyllaDBAddress=scylladb.__NPH_NAMESPACE"
+        - "--scyllaDBKeyspace=measure"
+        - "--scyllaDBPort=9042"
         securityContext:
           runAsUser: 2000
       imagePullSecrets:

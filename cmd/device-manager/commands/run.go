@@ -30,5 +30,11 @@ func init() {
 		"System Model address (host:port)")
 	runCmd.PersistentFlags().StringVar(&config.AuthxAddress, "authxAddress", "localhost:8810",
 		"Authx address (host:port)")
+	runCmd.Flags().BoolVar(&config.UseInMemoryProviders, "userInMemoryProviders", false, "Whether in-memory providers should be used. ONLY for development")
+	runCmd.Flags().BoolVar(&config.UseDBScyllaProviders, "useDBScyllaProviders", true, "Whether dbscylla providers should be used")
+	runCmd.Flags().StringVar(&config.ScyllaDBAddress, "scyllaDBAddress", "", "address to connect to scylla database")
+	runCmd.Flags().IntVar(&config.ScyllaDBPort, "scyllaDBPort", 9042, "port to connect to scylla database")
+	runCmd.Flags().StringVar(&config.KeySpace, "scyllaDBKeyspace", "measure", "keyspace of scylla database")
+
 	rootCmd.AddCommand(runCmd)
 }
