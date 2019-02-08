@@ -13,6 +13,16 @@ import (
 type Config struct {
 	// Port where the gRPC API service will listen requests.
 	Port int
+	// Use in-memory providers
+	UseInMemoryProviders bool
+	// Use scyllaDBProviders
+	UseDBScyllaProviders bool
+	// Database Address
+	ScyllaDBAddress string
+	// DatabasePort
+	ScyllaDBPort int
+	// DataBase KeySpace
+	KeySpace string
 	// AuthxAddress with the host:port to connect to the Authx manager.
 	AuthxAddress string
 	// SystemModelAddress with the host:port to connect to System Model
@@ -38,7 +48,17 @@ func (conf *Config) Validate() derrors.Error {
 
 func (conf *Config) Print() {
 	log.Info().Str("app", version.AppVersion).Str("commit", version.Commit).Msg("Version")
+
 	log.Info().Int("port", conf.Port).Msg("gRPC port")
 	log.Info().Str("URL", conf.AuthxAddress).Msg("Authx")
 	log.Info().Str("URL", conf.SystemModelAddress).Msg("System Model")
+
+	if conf.UseInMemoryProviders {
+		log.Info().Bool("UseInMemoryProviders", conf.UseInMemoryProviders).Msg("Using in-memory providers")
+	}
+	if conf.UseDBScyllaProviders {
+		log.Info().Bool("UseDBScyllaProviders", conf.UseDBScyllaProviders).Msg("using dbScylla providers")
+		log.Info().Str("URL", conf.ScyllaDBAddress).Str("KeySpace", conf.KeySpace).Int("Port", conf.ScyllaDBPort).Msg("ScyllaDB")
+	}
+
 }

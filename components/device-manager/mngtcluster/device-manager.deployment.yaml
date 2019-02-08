@@ -26,6 +26,10 @@ spec:
         args:
         - "run"
         - "--debug"
+        - "--useDBScyllaProviders=true"
+        - "--scyllaDBAddress=scylladb.__NPH_NAMESPACE"
+        - "--scyllaDBKeyspace=measure"
+        - "--scyllaDBPort=9042"
         - "--systemModelAddress=system-model.__NPH_NAMESPACE:8800"
         - "--authxAddress=authx.__NPH_NAMESPACE:8810"
         securityContext:

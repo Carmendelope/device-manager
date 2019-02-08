@@ -5,6 +5,8 @@
 package server
 
 import (
+	lat "github.com/nalej/device-manager/internal/pkg/server/latency"
+	"github.com/nalej/device-manager/internal/pkg/provider/latency"
 	"github.com/nalej/device-manager/internal/pkg/server/device"
 	"github.com/nalej/grpc-authx-go"
 	"github.com/nalej/grpc-device-go"
@@ -31,6 +33,37 @@ func NewService(conf Config) *Service {
 		conf,
 		tools.NewGenericGRPCServer(uint32(conf.Port)),
 	}
+}
+// Providers structure with all the providers in the system.
+type Providers struct {
+	pProvider  latency.Provider
+}
+
+// CreateInMemoryProviders returns a set of in-memory providers.
+func (s *Service) CreateInMemoryProviders() * Providers {
+	return &Providers{
+		pProvider: latency.NewMockupProvider(),
+	}
+}
+
+// CreateDBScyllaProviders returns a set of in-memory providers.
+func (s *Service) CreateDBScyllaProviders() * Providers {
+	return &Providers{
+		pProvider: latency.NewScyllaProvider(
+			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
+	}
+}
+
+
+// GetProviders builds the providers according to the selected backend.
+func (s *Service) GetProviders() * Providers {
+	if s.Configuration.UseInMemoryProviders {
+		return s.CreateInMemoryProviders()
+	} else if s.Configuration.UseDBScyllaProviders {
+		return s.CreateDBScyllaProviders()
+	}
+	log.Fatal().Msg("unsupported type of provider")
+	return nil
 }
 
 // Clients structure with the gRPC clients for remote services.
@@ -76,13 +109,19 @@ func (s *Service) Run() error {
 		log.Fatal().Errs("failed to listen: %v", []error{err})
 	}
 
+	prov := s.GetProviders()
+
 	// Create handlers
 	manager := device.NewManager(clients.AuthxClient, clients.DevicesClient, clients.AppsClient)
 	handler := device.NewHandler(manager)
 
+	pManager := lat.NewManager(prov.pProvider)
+	pHandler := lat.NewHandler(pManager)
+
 	grpcServer := grpc.NewServer()
 
 	grpc_device_manager_go.RegisterDevicesServer(grpcServer, handler)
+	grpc_device_manager_go.RegisterLatencyServer(grpcServer, pHandler)
 
 	// Register reflection service on gRPC server.
 	reflection.Register(grpcServer)

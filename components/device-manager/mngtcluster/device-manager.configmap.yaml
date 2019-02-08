@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    cluster: management
+  name: device-manager
+  namespace: __NPH_NAMESPACE
+data:
+  device-manager-scylla.cql: |
+    --------------
+    -- KEYSPACE --
+    --------------
+    create KEYSPACE IF NOT EXISTS measure WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};
+    create table IF NOT EXISTS measure.latency (organization_id text, device_group_id text, device_id text, inserted bigint, latency int, PRIMARY KEY ((organization_id, device_group_id, device_id), inserted) );
+  node_alive.sh: |
+    #!/bin/bash
+    echo 'executing script...'
+    KEYSPACE=$(cqlsh scylladb -e "DESCRIBE KEYSPACES")
+    while [ $? -ne 0 ]
+    do
+      echo 'sleep 1'
+      sleep 1
+      KEYSPACES=$(cqlsh scylladb -e "DESCRIBE KEYSPACES") 2> dev/null
+    done
+    echo 'creating database...'
+    cqlsh scylladb -f /opt/device-manager-scylla.cql
+
+    exit;
