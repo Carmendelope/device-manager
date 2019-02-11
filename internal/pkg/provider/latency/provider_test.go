@@ -9,11 +9,11 @@ import (
 	"github.com/nalej/device-manager/internal/pkg/entities"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
+	"math/rand"
 	"time"
 )
 
 func RunTest(provider Provider) {
-	// AddUser
 	ginkgo.It("Should be able to add a latency registry", func(){
 
 		latency := &entities.Latency{
@@ -81,4 +81,39 @@ func RunTest(provider Provider) {
 
 	})
 
+	ginkgo.It("Should be able to get the latency list of a group", func(){
+
+		organizationID := uuid.New().String()
+		DeviceGroupId := uuid.New().String()
+		numLatencies := 5
+		for i:=0 ; i< numLatencies; i++ {
+			latency := &entities.Latency{
+				OrganizationId: organizationID,
+				DeviceGroupId:  DeviceGroupId,
+				DeviceId:       uuid.New().String(),
+				Latency:        rand.Intn(500) +1,
+				Inserted:       time.Now().Unix(),
+			}
+
+			err := provider.AddPingLatency(*latency)
+			gomega.Expect(err).To(gomega.Succeed())
+		}
+
+		list, err := provider.GetGroupLatency(organizationID, DeviceGroupId)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(list).NotTo(gomega.BeNil())
+		gomega.Expect(len(list)).Should(gomega.Equal(numLatencies))
+
+	})
+	ginkgo.It("Should be able to get an empty latency list of a non existing group", func(){
+
+		organizationID := uuid.New().String()
+		DeviceGroupId := uuid.New().String()
+
+		list, err := provider.GetGroupLatency(organizationID, DeviceGroupId)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(list).NotTo(gomega.BeNil())
+		gomega.Expect(list).To(gomega.BeEmpty())
+
+	})
 }

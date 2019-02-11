@@ -17,12 +17,15 @@ type MockupProvider struct {
 	latency map[string] entities.Latency
 	// last inserted indexed by organization_id, device_group_id, device_id
 	lastInserted map[string] int64
+	// latency indexed by organization_id, device_group_id
+	latencyGroup map[string][]*entities.Latency
 }
 
 func NewMockupProvider() * MockupProvider {
 	return &MockupProvider{
 		latency:make(map[string]entities.Latency, 0),
 		lastInserted: make(map[string]int64, 0),
+		latencyGroup: make(map[string][]*entities.Latency),
 	}
 }
 
@@ -67,5 +70,21 @@ func (m * MockupProvider) AddPingLatency(latency entities.Latency ) derrors.Erro
 	shortKey := m.getShortKey(latency.OrganizationId, latency.DeviceGroupId, latency.DeviceId)
 	m.lastInserted[shortKey] = latency.Inserted
 
+	 list, exists := m.latencyGroup[fmt.Sprintf("%s-%s", latency.OrganizationId, latency.DeviceGroupId)]
+	 if !exists {
+	 	list = make ([]*entities.Latency, 0)
+
+	 }
+	list = append(list, &latency)
+	m.latencyGroup[fmt.Sprintf("%s-%s", latency.OrganizationId, latency.DeviceGroupId)] = list
+
 	return nil
+}
+
+func (m * MockupProvider) 	GetGroupLatency (organizationID string, deviceGroupID string) ([]*entities.Latency, derrors.Error){
+	list, exists := m.latencyGroup[fmt.Sprintf("%s-%s", organizationID, deviceGroupID)]
+	if ! exists {
+		return make([]*entities.Latency, 0), nil
+	}
+	return list, nil
 }
