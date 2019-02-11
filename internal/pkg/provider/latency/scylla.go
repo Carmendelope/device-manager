@@ -124,7 +124,7 @@ func (sp * ScyllaProvider) 	GetLastPingLatency (organizationID string, deviceGro
 		if cqlErr.Error() == rowNotFound {
 			return entities.NewEmptyLatency(), nil
 		}else{
-			return nil, derrors.AsError(err, "cannot get role")
+			return nil, derrors.AsError(err, "cannot Cannot retrieve last latency")
 		}
 	}
 
