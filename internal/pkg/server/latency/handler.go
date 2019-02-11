@@ -6,8 +6,10 @@ package latency
 
 import (
 	"context"
+	"github.com/nalej/device-manager/internal/pkg/entities"
 	"github.com/nalej/grpc-common-go"
 	"github.com/nalej/grpc-device-controller-go"
+	"github.com/nalej/grpc-utils/pkg/conversions"
 )
 
 // Handler structure for the node requests.
@@ -21,5 +23,14 @@ func NewHandler(manager Manager) *Handler {
 }
 
 func (h * Handler) RegisterLatency (ctx context.Context, request *grpc_device_controller_go.RegisterLatencyRequest) (*grpc_common_go.Success, error) {
-	return h.Manager.RegisterLatency(request)
+	err := entities.ValidRegisterLatencyRequest(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+
+	err =  h.Manager.RegisterLatency(request)
+	if err != nil {
+		return nil, conversions.ToGRPCError(err)
+	}
+	return &grpc_common_go.Success{}, nil
 }
