@@ -107,7 +107,9 @@ var _ = ginkgo.Describe("Device service", func() {
 		latencyProvider = latency.NewMockupProvider()
 
 		// Register the service
-		manager := NewManager(authxClient, deviceClient, appClient, latencyProvider, 180)
+		d, _ := time.ParseDuration("3m")
+
+		manager := NewManager(authxClient, deviceClient, appClient, latencyProvider, d)
 		handler := NewHandler(manager)
 		grpc_device_manager_go.RegisterDevicesServer(server, handler)
 		test.LaunchServer(server, listener)
@@ -390,7 +392,7 @@ var _ = ginkgo.Describe("Device service", func() {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(retrieved.DeviceStatus).Should(gomega.Equal(grpc_device_manager_go.DeviceStatus_OFFLINE))
 		})
-		ginkgo.FIt("should be able to get the device (Status ONLINE)", func() {
+		ginkgo.It("should be able to get the device (Status ONLINE)", func() {
 			dg := CreateDeviceGroup(client, targetOrganization.OrganizationId, true, true)
 			registerRequest := &grpc_device_manager_go.RegisterDeviceRequest{
 				OrganizationId:    dg.OrganizationId,

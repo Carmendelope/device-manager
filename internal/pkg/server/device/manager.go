@@ -27,13 +27,13 @@ type Manager struct {
 	authxClient grpc_authx_go.AuthxClient
 	devicesClient grpc_device_go.DevicesClient
 	appsClient grpc_application_go.ApplicationsClient
-	threshold int
+	threshold time.Duration
 	latencyProvider latency.Provider
 }
 
 // NewManager creates a Manager using a set of clients.
 func NewManager(authxClient grpc_authx_go.AuthxClient, deviceClient grpc_device_go.DevicesClient,
-	appsClient grpc_application_go.ApplicationsClient, lProvider latency.Provider, threshold int) Manager {
+	appsClient grpc_application_go.ApplicationsClient, lProvider latency.Provider, threshold time.Duration) Manager {
 	return Manager{
 		authxClient: authxClient,
 		devicesClient: deviceClient,
@@ -382,7 +382,7 @@ func (m * Manager) fillDeviceStatus (OrganizationId string, DeviceGroupId string
 		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("error getting device latency")
 	}else {
 
-		timeCalculated := time.Unix(latency.Inserted, 0).Add(time.Duration(m.threshold) * time.Second).Unix()
+		timeCalculated := time.Unix(latency.Inserted, 0).Add(m.threshold).Unix()
 		if timeCalculated > time.Now().Unix(){
 			status = grpc_device_manager_go.DeviceStatus_ONLINE
 		}
@@ -402,7 +402,7 @@ func (m*Manager) addAuthInfoToD(dg *grpc_device_go.Device) (*grpc_device_manager
 	if err != nil{
 		return nil, err
 	}
-	status := m.fillDeviceStatus(dg.OrganizationId, dg.DeviceGroupId, dg.DeviceId )
+	//status := m.fillDeviceStatus(dg.OrganizationId, dg.DeviceGroupId, dg.DeviceId )
 
 	return &grpc_device_manager_go.Device{
 		OrganizationId:       dg.OrganizationId,
@@ -412,7 +412,7 @@ func (m*Manager) addAuthInfoToD(dg *grpc_device_go.Device) (*grpc_device_manager
 		Labels:               dg.Labels,
 		Enabled:              dc.Enabled,
 		DeviceApiKey:         dc.DeviceApiKey,
-		DeviceStatus:         status,
+		//DeviceStatus:         status,
 	}, nil
 }
 
@@ -431,6 +431,10 @@ func (m*Manager) ListDevices(deviceGroupID *grpc_device_go.DeviceGroupId) (*grpc
 		}
 		result = append(result, toAdd)
 	}
+
+	// get lantencies of the group
+
+
 	return &grpc_device_manager_go.DeviceList{
 		Devices:              result,
 	}, nil

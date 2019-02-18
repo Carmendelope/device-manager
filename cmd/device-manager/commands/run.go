@@ -8,7 +8,11 @@ import (
 	"github.com/nalej/device-manager/internal/pkg/server"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
+	"time"
 )
+
+
+const DefaultDeviceStatusThreshold = "3m"
 
 var config = server.Config{}
 
@@ -25,6 +29,9 @@ var runCmd = &cobra.Command{
 }
 
 func init() {
+	d, _ := time.ParseDuration(DefaultDeviceStatusThreshold)
+
+
 	runCmd.Flags().IntVar(&config.Port, "port", 6010, "Port to launch the Device gRPC API")
 	runCmd.PersistentFlags().StringVar(&config.SystemModelAddress, "systemModelAddress", "localhost:8800",
 		"System Model address (host:port)")
@@ -35,7 +42,7 @@ func init() {
 	runCmd.Flags().StringVar(&config.ScyllaDBAddress, "scyllaDBAddress", "", "address to connect to scylla database")
 	runCmd.Flags().IntVar(&config.ScyllaDBPort, "scyllaDBPort", 9042, "port to connect to scylla database")
 	runCmd.Flags().StringVar(&config.KeySpace, "scyllaDBKeyspace", "measure", "keyspace of scylla database")
-	runCmd.Flags().IntVar(&config.Threshold, "threshold", 180, "Threshold between ping to decide if a device is offline/online")
+	runCmd.Flags().DurationVar(&config.Threshold, "threshold", d, "Threshold between ping to decide if a device is offline/online")
 
 	rootCmd.AddCommand(runCmd)
 }
