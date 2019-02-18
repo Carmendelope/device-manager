@@ -35,6 +35,7 @@ func init() {
 	runCmd.Flags().StringVar(&config.ScyllaDBAddress, "scyllaDBAddress", "", "address to connect to scylla database")
 	runCmd.Flags().IntVar(&config.ScyllaDBPort, "scyllaDBPort", 9042, "port to connect to scylla database")
 	runCmd.Flags().StringVar(&config.KeySpace, "scyllaDBKeyspace", "measure", "keyspace of scylla database")
+	runCmd.Flags().IntVar(&config.Threshold, "threshold", 180, "Threshold between ping to decide if a device is offline/online")
 
 	rootCmd.AddCommand(runCmd)
 }

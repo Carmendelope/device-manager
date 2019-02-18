@@ -112,7 +112,7 @@ func (s *Service) Run() error {
 	prov := s.GetProviders()
 
 	// Create handlers
-	manager := device.NewManager(clients.AuthxClient, clients.DevicesClient, clients.AppsClient)
+	manager := device.NewManager(clients.AuthxClient, clients.DevicesClient, clients.AppsClient, prov.pProvider, s.Configuration.Threshold)
 	handler := device.NewHandler(manager)
 
 	pManager := lat.NewManager(prov.pProvider)

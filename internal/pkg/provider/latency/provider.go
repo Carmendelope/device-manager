@@ -19,4 +19,7 @@ type Provider interface {
 
 	// GetGroupLatency get the last latency measures of a device_group
 	GetGroupLatency (organizationID string, deviceGroupID string) ([]*entities.Latency, derrors.Error)
+
+	GetLatency(organizationID string, deviceGroupID string, deviceID string) ([]*entities.Latency, derrors.Error)
+
 }

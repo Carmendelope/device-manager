@@ -116,4 +116,43 @@ func RunTest(provider Provider) {
 		gomega.Expect(list).To(gomega.BeEmpty())
 
 	})
+
+	ginkgo.It("Should be able to get the latencies of a device", func(){
+
+		organizationID := uuid.New().String()
+		DeviceGroupId := uuid.New().String()
+		DeviceId := uuid.New().String()
+		numLatencies := 5
+		for i:=0 ; i< numLatencies; i++ {
+			latency := &entities.Latency{
+				OrganizationId: organizationID,
+				DeviceGroupId:  DeviceGroupId,
+				DeviceId:       DeviceId,
+				Latency:        rand.Intn(300) +1,
+				Inserted:       time.Now().Unix() + int64(i),
+			}
+
+			err := provider.AddPingLatency(*latency)
+			gomega.Expect(err).To(gomega.Succeed())
+		}
+
+		list, err := provider.GetLatency(organizationID, DeviceGroupId, DeviceId)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(list).NotTo(gomega.BeNil())
+		gomega.Expect(len(list)).Should(gomega.Equal(numLatencies))
+
+	})
+	ginkgo.It("Should be able to get the an empty latency list of a device", func(){
+
+		organizationID := uuid.New().String()
+		DeviceGroupId := uuid.New().String()
+		DeviceId := uuid.New().String()
+
+		list, err := provider.GetLatency(organizationID, DeviceGroupId, DeviceId)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(list).NotTo(gomega.BeNil())
+		gomega.Expect(list).To(gomega.BeEmpty())
+
+	})
+
 }

@@ -88,3 +88,18 @@ func (m * MockupProvider) 	GetGroupLatency (organizationID string, deviceGroupID
 	}
 	return list, nil
 }
+
+func (m * MockupProvider) GetLatency(organizationID string, deviceGroupID string, deviceID string) ([]*entities.Latency, derrors.Error){
+	latencies := make([]*entities.Latency, 0)
+	list, exists := m.latencyGroup[fmt.Sprintf("%s-%s", organizationID, deviceGroupID)]
+	if ! exists {
+		return latencies, nil
+	}
+	for _, latency := range list {
+		if latency.DeviceId == deviceID {
+			latencies = append(latencies, latency)
+		}
+	}
+	return latencies, nil
+}
+

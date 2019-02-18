@@ -32,6 +32,7 @@ spec:
         - "--scyllaDBPort=9042"
         - "--systemModelAddress=system-model.__NPH_NAMESPACE:8800"
         - "--authxAddress=authx.__NPH_NAMESPACE:8810"
+        - "--threshold=180"
         securityContext:
           runAsUser: 2000
       imagePullSecrets:

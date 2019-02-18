@@ -7,6 +7,8 @@ package device
 import (
 	"context"
 	"fmt"
+	"github.com/nalej/device-manager/internal/pkg/entities"
+	"github.com/nalej/device-manager/internal/pkg/provider/latency"
 	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-authx-go"
 	"github.com/nalej/grpc-device-go"
@@ -20,6 +22,7 @@ import (
 	"google.golang.org/grpc/test/bufconn"
 	"math/rand"
 	"os"
+	"time"
 )
 
 func GetConnection(address string) (* grpc.ClientConn) {
@@ -83,6 +86,7 @@ var _ = ginkgo.Describe("Device service", func() {
 	var smConn *grpc.ClientConn
 	var authxClient grpc_authx_go.AuthxClient
 	var authxConn *grpc.ClientConn
+	var latencyProvider *latency.MockupProvider
 
 	// Target organization.
 	var targetOrganization *grpc_organization_go.Organization
@@ -99,8 +103,11 @@ var _ = ginkgo.Describe("Device service", func() {
 		authxConn = GetConnection(authxAddress)
 		authxClient = grpc_authx_go.NewAuthxClient(authxConn)
 
+		// provider
+		latencyProvider = latency.NewMockupProvider()
+
 		// Register the service
-		manager := NewManager(authxClient, deviceClient, appClient)
+		manager := NewManager(authxClient, deviceClient, appClient, latencyProvider, 180)
 		handler := NewHandler(manager)
 		grpc_device_manager_go.RegisterDevicesServer(server, handler)
 		test.LaunchServer(server, listener)
@@ -345,6 +352,77 @@ var _ = ginkgo.Describe("Device service", func() {
 	ginkgo.Context("interaction device group and device", func(){
 		ginkgo.PIt("should remove devices on device group removal", func(){
 
+		})
+	})
+
+	ginkgo.Context("Checking the device status", func() {
+		ginkgo.It("should be able to get the device (Status OFFLINE)", func() {
+			dg := CreateDeviceGroup(client, targetOrganization.OrganizationId, true, true)
+			registerRequest := &grpc_device_manager_go.RegisterDeviceRequest{
+				OrganizationId:    dg.OrganizationId,
+				DeviceGroupId:     dg.DeviceGroupId,
+				DeviceGroupApiKey: dg.DeviceGroupApiKey,
+				DeviceId:          fmt.Sprintf("d-%s-%d", dg.DeviceGroupId, rand.Int()),
+				Labels:            nil,
+			}
+			added, err := client.RegisterDevice(context.Background(), registerRequest)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(added).ShouldNot(gomega.BeNil())
+			gomega.Expect(added.DeviceApiKey).ShouldNot(gomega.BeNil())
+
+			// adding a ping
+			ping := entities.Latency{
+				OrganizationId: dg.OrganizationId,
+				DeviceGroupId:  dg.DeviceGroupId,
+				DeviceId:       registerRequest.DeviceId,
+				Latency:        30,
+				Inserted:       time.Now().Add(- time.Duration(4)*time.Minute).Unix()  ,
+			}
+			err = latencyProvider.AddPingLatency(ping)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			toRetrieve := &grpc_device_go.DeviceId{
+				OrganizationId: dg.OrganizationId,
+				DeviceGroupId:  dg.DeviceGroupId,
+				DeviceId:       registerRequest.DeviceId,
+			}
+			retrieved, err := client.GetDevice(context.Background(), toRetrieve)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(retrieved.DeviceStatus).Should(gomega.Equal(grpc_device_manager_go.DeviceStatus_OFFLINE))
+		})
+		ginkgo.FIt("should be able to get the device (Status ONLINE)", func() {
+			dg := CreateDeviceGroup(client, targetOrganization.OrganizationId, true, true)
+			registerRequest := &grpc_device_manager_go.RegisterDeviceRequest{
+				OrganizationId:    dg.OrganizationId,
+				DeviceGroupId:     dg.DeviceGroupId,
+				DeviceGroupApiKey: dg.DeviceGroupApiKey,
+				DeviceId:          fmt.Sprintf("d-%s-%d", dg.DeviceGroupId, rand.Int()),
+				Labels:            nil,
+			}
+			added, err := client.RegisterDevice(context.Background(), registerRequest)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(added).ShouldNot(gomega.BeNil())
+			gomega.Expect(added.DeviceApiKey).ShouldNot(gomega.BeNil())
+
+			// adding a ping
+			ping := entities.Latency{
+				OrganizationId: dg.OrganizationId,
+				DeviceGroupId:  dg.DeviceGroupId,
+				DeviceId:       registerRequest.DeviceId,
+				Latency:        30,
+				Inserted:       time.Now().Add(- time.Duration(2)*time.Minute).Unix()  ,
+			}
+			err = latencyProvider.AddPingLatency(ping)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			toRetrieve := &grpc_device_go.DeviceId{
+				OrganizationId: dg.OrganizationId,
+				DeviceGroupId:  dg.DeviceGroupId,
+				DeviceId:       registerRequest.DeviceId,
+			}
+			retrieved, err := client.GetDevice(context.Background(), toRetrieve)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(retrieved.DeviceStatus).Should(gomega.Equal(grpc_device_manager_go.DeviceStatus_ONLINE))
 		})
 	})
 

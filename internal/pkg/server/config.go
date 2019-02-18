@@ -27,6 +27,8 @@ type Config struct {
 	AuthxAddress string
 	// SystemModelAddress with the host:port to connect to System Model
 	SystemModelAddress string
+	// Threshold maximum time (seconds) between ping to decide if a device is offline or online
+	Threshold int
 }
 
 func (conf *Config) Validate() derrors.Error {
@@ -60,5 +62,6 @@ func (conf *Config) Print() {
 		log.Info().Bool("UseDBScyllaProviders", conf.UseDBScyllaProviders).Msg("using dbScylla providers")
 		log.Info().Str("URL", conf.ScyllaDBAddress).Str("KeySpace", conf.KeySpace).Int("Port", conf.ScyllaDBPort).Msg("ScyllaDB")
 	}
+	log.Info().Int("Threshold", conf.Threshold).Msg("Threshold (in seconds)")
 
 }
