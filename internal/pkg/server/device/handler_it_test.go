@@ -426,6 +426,62 @@ var _ = ginkgo.Describe("Device service", func() {
 			gomega.Expect(err).To(gomega.Succeed())
 			gomega.Expect(retrieved.DeviceStatus).Should(gomega.Equal(grpc_device_manager_go.DeviceStatus_ONLINE))
 		})
+		ginkgo.It("should be able to list devices with the correct status (ONLINE/OFFLINE)", func(){
+			dg := CreateDeviceGroup(client, targetOrganization.OrganizationId, true, true)
+			for i:=1; i<=2; i++ {
+				registerRequest := &grpc_device_manager_go.RegisterDeviceRequest{
+					OrganizationId:    dg.OrganizationId,
+					DeviceGroupId:     dg.DeviceGroupId,
+					DeviceGroupApiKey: dg.DeviceGroupApiKey,
+					DeviceId:          fmt.Sprintf("d-%s-%d", dg.DeviceGroupId, i),
+					Labels:            nil,
+				}
+				added, err := client.RegisterDevice(context.Background(), registerRequest)
+				gomega.Expect(err).To(gomega.Succeed())
+				gomega.Expect(added).ShouldNot(gomega.BeNil())
+			}
+
+			// add some pings (device1)
+			for i:= 0; i<=5; i++ {
+				ping := entities.Latency{
+					OrganizationId: dg.OrganizationId,
+					DeviceGroupId:  dg.DeviceGroupId,
+					DeviceId:       fmt.Sprintf("d-%s-1", dg.DeviceGroupId),
+					Latency:        30,
+					Inserted:       time.Now().Unix()+int64(i),
+				}
+				errLat := latencyProvider.AddPingLatency(ping)
+				gomega.Expect(errLat).To(gomega.Succeed())
+			}
+			// add a ping (expired ping for device2)
+			ping := entities.Latency{
+				OrganizationId: dg.OrganizationId,
+				DeviceGroupId:  dg.DeviceGroupId,
+				DeviceId:       fmt.Sprintf("d-%s-2", dg.DeviceGroupId),
+				Latency:        30,
+				Inserted:       time.Now().Add(-time.Duration(5)*time.Hour).Unix()  ,
+			}
+			errLat := latencyProvider.AddPingLatency(ping)
+			gomega.Expect(errLat).To(gomega.Succeed())
+
+			// get devices
+			deviceGroupID := &grpc_device_go.DeviceGroupId{
+				OrganizationId:       dg.OrganizationId,
+				DeviceGroupId:        dg.DeviceGroupId,
+			}
+
+			list, err := client.ListDevices(context.Background(), deviceGroupID)
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(list).NotTo(gomega.BeNil())
+			for _, device := range list.Devices {
+				if device.DeviceId == fmt.Sprintf("d-%s-1", dg.DeviceGroupId) {
+					gomega.Expect(device.DeviceStatus).Should(gomega.Equal(grpc_device_manager_go.DeviceStatus_ONLINE))
+				}else{
+					gomega.Expect(device.DeviceStatus).Should(gomega.Equal(grpc_device_manager_go.DeviceStatus_OFFLINE))
+				}
+			}
+
+		})
 	})
 
 })

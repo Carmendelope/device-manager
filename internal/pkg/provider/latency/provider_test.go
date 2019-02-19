@@ -92,7 +92,7 @@ func RunTest(provider Provider) {
 				DeviceGroupId:  DeviceGroupId,
 				DeviceId:       uuid.New().String(),
 				Latency:        rand.Intn(500) +1,
-				Inserted:       time.Now().Unix(),
+				Inserted:       time.Now().Unix()+int64(i),
 			}
 
 			err := provider.AddPingLatency(*latency)
@@ -152,6 +152,68 @@ func RunTest(provider Provider) {
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(list).NotTo(gomega.BeNil())
 		gomega.Expect(list).To(gomega.BeEmpty())
+
+	})
+	ginkgo.It("Should be able to get last latency list of a group", func(){
+
+		organizationID := uuid.New().String()
+		DeviceGroupId := uuid.New().String()
+		// device1
+		numLatencies := 5
+
+		device1 := uuid.New().String()
+		for i:=0 ; i<numLatencies-1; i++ {
+			latency := &entities.Latency{
+				OrganizationId: organizationID,
+				DeviceGroupId:  DeviceGroupId,
+				DeviceId:       device1,
+				Latency:        rand.Intn(500) +1,
+				Inserted:       time.Now().Unix()+int64(i),
+			}
+
+			err := provider.AddPingLatency(*latency)
+			gomega.Expect(err).To(gomega.Succeed())
+		}
+		// inserted 10 minutes ago
+		latency := &entities.Latency{
+			OrganizationId: organizationID,
+			DeviceGroupId:  DeviceGroupId,
+			DeviceId:       device1,
+			Latency:        rand.Intn(500) +1,
+			Inserted:       time.Now().Add(-1*time.Duration(10)*time.Minute).Unix(),
+		}
+		err := provider.AddPingLatency(*latency)
+		gomega.Expect(err).To(gomega.Succeed())
+
+		// device2
+		device2 := uuid.New().String()
+		for i:=0 ; i<numLatencies-1; i++ {
+			latency := &entities.Latency{
+				OrganizationId: organizationID,
+				DeviceGroupId:  DeviceGroupId,
+				DeviceId:       device2,
+				Latency:        rand.Intn(500) +1,
+				Inserted:       time.Now().Unix()+int64(i),
+			}
+
+			err := provider.AddPingLatency(*latency)
+			gomega.Expect(err).To(gomega.Succeed())
+		}
+		// inserted 10 minutes ago
+		latency = &entities.Latency{
+			OrganizationId: organizationID,
+			DeviceGroupId:  DeviceGroupId,
+			DeviceId:       device2,
+			Latency:        rand.Intn(500) +1,
+			Inserted:       time.Now().Add(-1*time.Duration(10)*time.Minute).Unix(),
+		}
+		err = provider.AddPingLatency(*latency)
+		gomega.Expect(err).To(gomega.Succeed())
+
+		list, err := provider.GetGroupLatency(organizationID, DeviceGroupId)
+		gomega.Expect(err).To(gomega.Succeed())
+		gomega.Expect(list).NotTo(gomega.BeNil())
+		gomega.Expect(len(list)).Should(gomega.Equal(8))
 
 	})
 

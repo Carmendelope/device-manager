@@ -402,8 +402,6 @@ func (m*Manager) addAuthInfoToD(dg *grpc_device_go.Device) (*grpc_device_manager
 	if err != nil{
 		return nil, err
 	}
-	//status := m.fillDeviceStatus(dg.OrganizationId, dg.DeviceGroupId, dg.DeviceId )
-
 	return &grpc_device_manager_go.Device{
 		OrganizationId:       dg.OrganizationId,
 		DeviceGroupId:        dg.DeviceGroupId,
@@ -412,8 +410,16 @@ func (m*Manager) addAuthInfoToD(dg *grpc_device_go.Device) (*grpc_device_manager
 		Labels:               dg.Labels,
 		Enabled:              dc.Enabled,
 		DeviceApiKey:         dc.DeviceApiKey,
-		//DeviceStatus:         status,
+		DeviceStatus:         grpc_device_manager_go.DeviceStatus_OFFLINE, // offline by default
 	}, nil
+}
+
+func (m*Manager)updateStatus (devices []*grpc_device_manager_go.Device, deviceId string) {
+	for i:= 0; i< len(devices); i++ {
+		if devices[i].DeviceId == deviceId {
+			devices[i].DeviceStatus = grpc_device_manager_go.DeviceStatus_ONLINE
+		}
+	}
 }
 
 func (m*Manager) ListDevices(deviceGroupID *grpc_device_go.DeviceGroupId) (*grpc_device_manager_go.DeviceList, error){
@@ -433,6 +439,23 @@ func (m*Manager) ListDevices(deviceGroupID *grpc_device_go.DeviceGroupId) (*grpc
 	}
 
 	// get lantencies of the group
+	if len(result) > 0  {
+		list, err := m.latencyProvider.GetGroupIntervalLatencies(deviceGroupID.OrganizationId, deviceGroupID.DeviceGroupId, m.threshold)
+		if err != nil {
+			log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("error getting device latency")
+		}else{
+			// GetGroupIntervalLatencies returns the pings received in threshold time
+			// to avoid update a devicestatus twice, we store the updated deviceId in 'updated' map
+			updated := make (map[string]bool, 0)
+			for _, latency := range list {
+				_, exists := updated[latency.DeviceId]
+				if ! exists {
+					updated[latency.DeviceId] = true
+					m.updateStatus(result, latency.DeviceId)
+				}
+			}
+		}
+	}
 
 
 	return &grpc_device_manager_go.DeviceList{

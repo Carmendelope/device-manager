@@ -19,6 +19,8 @@ import (
 const ttlExpired = time.Duration(24)*time.Hour
 const rowNotFound = "not found"
 
+const limitTime = time.Duration(5) * time.Minute
+
 type ScyllaProvider struct {
 	Address string
 	Port int
@@ -132,7 +134,12 @@ func (sp * ScyllaProvider) 	GetLastPingLatency (organizationID string, deviceGro
 
 }
 
+// by default -> 5 minutes
 func (sp * ScyllaProvider) 	GetGroupLatency (organizationID string, deviceGroupID string) ([]*entities.Latency, derrors.Error){
+	return sp.GetGroupIntervalLatencies(organizationID, deviceGroupID, limitTime)
+}
+
+func (sp * ScyllaProvider) 	GetGroupIntervalLatencies (organizationID string, deviceGroupID string, duration time.Duration) ([]*entities.Latency, derrors.Error){
 	sp.Lock()
 	defer sp.Unlock()
 
@@ -143,12 +150,17 @@ func (sp * ScyllaProvider) 	GetGroupLatency (organizationID string, deviceGroupI
 	}
 
 	latencyList := make([]*entities.Latency, 0)
+	stmt, names := qb.Select("deviceGrouplatency").Where(qb.Eq("organization_id")).
+		Where(qb.Eq("device_group_id")).Where(qb.GtNamed("inserted", "inserted")).OrderBy("inserted", qb.DESC).ToCql()
+	/*
 	stmt, names := qb.Select("latency").Where(qb.Eq("organization_id")).
-		Where(qb.Eq("device_group_id")).OrderBy("device_id", qb.ASC ).ToCql()
+			Where(qb.Eq("device_group_id")).OrderBy("device_id", qb.ASC ).ToCql()
+	*/
 
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		"organization_id": organizationID,
 		"device_group_id": deviceGroupID,
+		"inserted": time.Now().Add(-1 * duration).Unix(),
 	})
 
 	cqlErr := gocqlx.Select(&latencyList, q.Query)
@@ -164,7 +176,6 @@ func (sp * ScyllaProvider) 	GetGroupLatency (organizationID string, deviceGroupI
 	return latencyList, nil
 
 }
-
 func (sp * ScyllaProvider) GetLatency(organizationID string, deviceGroupID string, deviceID string) ([]*entities.Latency, derrors.Error){
 	sp.Lock()
 	defer sp.Unlock()

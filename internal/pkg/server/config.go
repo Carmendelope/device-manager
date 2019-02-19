@@ -63,6 +63,6 @@ func (conf *Config) Print() {
 		log.Info().Bool("UseDBScyllaProviders", conf.UseDBScyllaProviders).Msg("using dbScylla providers")
 		log.Info().Str("URL", conf.ScyllaDBAddress).Str("KeySpace", conf.KeySpace).Int("Port", conf.ScyllaDBPort).Msg("ScyllaDB")
 	}
-	log.Info().Str("Threshold", conf.Threshold.String()).Msg("Threshold")
+	log.Info().Str("Threshold", conf.Threshold.String()).Msg("Online/Offline Threshold")
 
 }
