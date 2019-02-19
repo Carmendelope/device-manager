@@ -9,6 +9,8 @@ import (
 	"github.com/nalej/device-manager/internal/pkg/entities"
 	"github.com/nalej/device-manager/internal/pkg/provider/latency"
 	"github.com/nalej/grpc-device-controller-go"
+	"github.com/nalej/grpc-device-go"
+	"github.com/nalej/grpc-device-manager-go"
 )
 
 type Manager struct {
@@ -33,4 +35,11 @@ func (m * Manager) RegisterLatency (request *grpc_device_controller_go.RegisterL
 	}
 
 	return  nil
+}
+
+func (m * Manager) GetLatency(device *grpc_device_go.DeviceId) (*grpc_device_manager_go.LatencyMeasure, derrors.Error) {
+	return nil, derrors.NewUnimplementedError("not implemented yet")
+}
+func (m * Manager) GetLatencyList(group *grpc_device_go.DeviceGroupId) (*grpc_device_manager_go.LatencyMeasureList, derrors.Error){
+	return nil, derrors.NewUnimplementedError("not implemented yet")
 }
