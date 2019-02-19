@@ -11,7 +11,7 @@ spec:
       restartPolicy: Never
       containers:
       - name: scylladb
-        image: scylladb/scylla:2.0.0
+        image: scylladb/scylla:3.0.0
         command: ["/bin/bash"]
         args: [ "./opt/node_alive.sh"]
         tty: true
