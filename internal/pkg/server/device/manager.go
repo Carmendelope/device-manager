@@ -7,6 +7,7 @@ package device
 import (
 	"context"
 	"github.com/nalej/derrors"
+	"github.com/nalej/device-manager/internal/pkg/provider/latency"
 	"github.com/nalej/grpc-application-go"
 	"github.com/nalej/grpc-authx-go"
 	"github.com/nalej/grpc-common-go"
@@ -26,14 +27,19 @@ type Manager struct {
 	authxClient grpc_authx_go.AuthxClient
 	devicesClient grpc_device_go.DevicesClient
 	appsClient grpc_application_go.ApplicationsClient
+	threshold time.Duration
+	latencyProvider latency.Provider
 }
 
 // NewManager creates a Manager using a set of clients.
-func NewManager(authxClient grpc_authx_go.AuthxClient, deviceClient grpc_device_go.DevicesClient, appsClient grpc_application_go.ApplicationsClient) Manager {
+func NewManager(authxClient grpc_authx_go.AuthxClient, deviceClient grpc_device_go.DevicesClient,
+	appsClient grpc_application_go.ApplicationsClient, lProvider latency.Provider, threshold time.Duration) Manager {
 	return Manager{
 		authxClient: authxClient,
 		devicesClient: deviceClient,
 		appsClient: appsClient,
+		latencyProvider:lProvider,
+		threshold: threshold,
 	}
 }
 
@@ -354,6 +360,9 @@ func (m*Manager) GetDevice(deviceID *grpc_device_go.DeviceId) (*grpc_device_mana
 	aCtx, aCancel := context.WithTimeout(context.Background(), AuthxClientTimeout)
 	defer aCancel()
 	dc, err := m.authxClient.GetDeviceCredentials(aCtx, deviceID)
+
+	status := m.fillDeviceStatus(d.OrganizationId, d.DeviceGroupId, d.DeviceId )
+
 	return &grpc_device_manager_go.Device{
 		OrganizationId:       d.OrganizationId,
 		DeviceGroupId:        d.DeviceGroupId,
@@ -362,7 +371,23 @@ func (m*Manager) GetDevice(deviceID *grpc_device_go.DeviceId) (*grpc_device_mana
 		Labels:               d.Labels,
 		Enabled:              dc.Enabled,
 		DeviceApiKey:         dc.DeviceApiKey,
+		DeviceStatus: 		  status,
 	}, nil
+}
+
+func (m * Manager) fillDeviceStatus (OrganizationId string, DeviceGroupId string, DeviceId string) grpc_device_manager_go.DeviceStatus  {
+	status := grpc_device_manager_go.DeviceStatus_OFFLINE
+	latency, err := m.latencyProvider.GetLastPingLatency(OrganizationId, DeviceGroupId, DeviceId)
+	if err != nil || latency.Latency == -1 {
+		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("error getting device latency")
+	}else {
+
+		timeCalculated := time.Unix(latency.Inserted, 0).Add(m.threshold).Unix()
+		if timeCalculated > time.Now().Unix(){
+			status = grpc_device_manager_go.DeviceStatus_ONLINE
+		}
+	}
+	return status
 }
 
 func (m*Manager) addAuthInfoToD(dg *grpc_device_go.Device) (*grpc_device_manager_go.Device, error){
@@ -385,7 +410,16 @@ func (m*Manager) addAuthInfoToD(dg *grpc_device_go.Device) (*grpc_device_manager
 		Labels:               dg.Labels,
 		Enabled:              dc.Enabled,
 		DeviceApiKey:         dc.DeviceApiKey,
+		DeviceStatus:         grpc_device_manager_go.DeviceStatus_OFFLINE, // offline by default
 	}, nil
+}
+
+func (m*Manager)updateStatus (devices []*grpc_device_manager_go.Device, deviceId string) {
+	for i:= 0; i< len(devices); i++ {
+		if devices[i].DeviceId == deviceId {
+			devices[i].DeviceStatus = grpc_device_manager_go.DeviceStatus_ONLINE
+		}
+	}
 }
 
 func (m*Manager) ListDevices(deviceGroupID *grpc_device_go.DeviceGroupId) (*grpc_device_manager_go.DeviceList, error){
@@ -403,6 +437,27 @@ func (m*Manager) ListDevices(deviceGroupID *grpc_device_go.DeviceGroupId) (*grpc
 		}
 		result = append(result, toAdd)
 	}
+
+	// get lantencies of the group
+	if len(result) > 0  {
+		list, err := m.latencyProvider.GetGroupIntervalLatencies(deviceGroupID.OrganizationId, deviceGroupID.DeviceGroupId, m.threshold)
+		if err != nil {
+			log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("error getting device latency")
+		}else{
+			// GetGroupIntervalLatencies returns the pings received in threshold time
+			// to avoid update a devicestatus twice, we store the updated deviceId in 'updated' map
+			updated := make (map[string]bool, 0)
+			for _, latency := range list {
+				_, exists := updated[latency.DeviceId]
+				if ! exists {
+					updated[latency.DeviceId] = true
+					m.updateStatus(result, latency.DeviceId)
+				}
+			}
+		}
+	}
+
+
 	return &grpc_device_manager_go.DeviceList{
 		Devices:              result,
 	}, nil
@@ -434,3 +489,4 @@ func (m*Manager) UpdateDevice(request *grpc_device_manager_go.UpdateDeviceReques
 	}
 	return m.GetDevice(deviceID)
 }
+

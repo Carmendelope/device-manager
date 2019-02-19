@@ -9,6 +9,7 @@ import (
 	"github.com/nalej/derrors"
 	"github.com/nalej/device-manager/internal/pkg/entities"
 	"sync"
+	"time"
 )
 
 type MockupProvider struct {
@@ -43,7 +44,8 @@ func (m * MockupProvider) getShortKey(organizationID string, deviceGroupID strin
 
 // GetLastPingLatency get the las latency measure of a device
 func (m * MockupProvider) 	GetLastPingLatency (organizationID string, deviceGroupID string, deviceID string) (*entities.Latency, derrors.Error) {
-
+	m.Lock()
+	defer m.Unlock()
 	// get the last time inserted
 	shortKey := m.getShortKey(organizationID, deviceGroupID, deviceID)
 	inserted, exists := m.lastInserted[shortKey]
@@ -82,9 +84,43 @@ func (m * MockupProvider) AddPingLatency(latency entities.Latency ) derrors.Erro
 }
 
 func (m * MockupProvider) 	GetGroupLatency (organizationID string, deviceGroupID string) ([]*entities.Latency, derrors.Error){
+	return m.GetGroupIntervalLatencies(organizationID, deviceGroupID, limitTime)
+}
+
+func (m * MockupProvider) GetGroupIntervalLatencies (organizationID string, deviceGroupID string, duration time.Duration) ([]*entities.Latency, derrors.Error) {
+	m.Lock()
+	defer m.Unlock()
+
+	threshold := time.Now().Add(-1 * duration).Unix()
+	list, exists := m.latencyGroup[fmt.Sprintf("%s-%s", organizationID, deviceGroupID)]
+	result := make ([]*entities.Latency, 0)
+	if ! exists {
+		return result, nil
+	}
+
+	for _, latency := range list{
+		if latency.Inserted > threshold {
+			result = append(result, latency)
+		}
+	}
+
+	return result, nil
+}
+
+func (m * MockupProvider) GetLatency(organizationID string, deviceGroupID string, deviceID string) ([]*entities.Latency, derrors.Error){
+	m.Lock()
+	defer m.Unlock()
+
+	latencies := make([]*entities.Latency, 0)
 	list, exists := m.latencyGroup[fmt.Sprintf("%s-%s", organizationID, deviceGroupID)]
 	if ! exists {
-		return make([]*entities.Latency, 0), nil
+		return latencies, nil
 	}
-	return list, nil
+	for _, latency := range list {
+		if latency.DeviceId == deviceID {
+			latencies = append(latencies, latency)
+		}
+	}
+	return latencies, nil
 }
+
