@@ -110,7 +110,7 @@ func (m*Manager) AddDeviceGroup(request *grpc_device_manager_go.AddDeviceGroupRe
 		OrganizationId:            request.OrganizationId,
 		DeviceGroupId:             added.DeviceGroupId,
 		Enabled:                   request.Enabled,
-		DefaultDeviceConnectivity: request.DeviceDefaultConnectivity,
+		DefaultDeviceConnectivity: request.DefaultDeviceConnectivity,
 	}
 	credentials, err := m.authxClient.AddDeviceGroupCredentials(aCtx, addDGCredentialsRequest)
 	if err != nil{
