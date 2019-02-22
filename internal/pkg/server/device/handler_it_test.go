@@ -46,7 +46,7 @@ func CreateDeviceGroup(client grpc_device_manager_go.DevicesClient, organization
 		OrganizationId:            organizationID,
 		Name:                      fmt.Sprintf("dg-%d", rand.Int()),
 		Enabled:                   enabled,
-		DeviceDefaultConnectivity: defaultConnectivity,
+		DefaultDeviceConnectivity: defaultConnectivity,
 	}
 	added, err := client.AddDeviceGroup(context.Background(), addDGRequest)
 	gomega.Expect(err).To(gomega.Succeed())
@@ -138,7 +138,7 @@ var _ = ginkgo.Describe("Device service", func() {
 				OrganizationId:            targetOrganization.OrganizationId,
 				Name:                      fmt.Sprintf("dg-%d", rand.Int()),
 				Enabled:                   false,
-				DeviceDefaultConnectivity: false,
+				DefaultDeviceConnectivity: false,
 			}
 			added, err := client.AddDeviceGroup(context.Background(), addDGRequest)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -150,7 +150,7 @@ var _ = ginkgo.Describe("Device service", func() {
 				OrganizationId:            targetOrganization.OrganizationId,
 				Name:                      fmt.Sprintf("dg-%d", rand.Int()),
 				Enabled:                   false,
-				DeviceDefaultConnectivity: false,
+				DefaultDeviceConnectivity: false,
 			}
 			added, err := client.AddDeviceGroup(context.Background(), addDGRequest)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -170,7 +170,7 @@ var _ = ginkgo.Describe("Device service", func() {
 				OrganizationId:            targetOrganization.OrganizationId,
 				Name:                      fmt.Sprintf("dg-%d", rand.Int()),
 				Enabled:                   false,
-				DeviceDefaultConnectivity: false,
+				DefaultDeviceConnectivity: false,
 			}
 			added, err := client.AddDeviceGroup(context.Background(), addDGRequest)
 			gomega.Expect(err).To(gomega.Succeed())
@@ -194,7 +194,7 @@ var _ = ginkgo.Describe("Device service", func() {
 				OrganizationId:            targetOrganization.OrganizationId,
 				Name:                      fmt.Sprintf("dg-%d", rand.Int()),
 				Enabled:                   false,
-				DeviceDefaultConnectivity: false,
+				DefaultDeviceConnectivity: false,
 			}
 			added, err := client.AddDeviceGroup(context.Background(), addDGRequest)
 			gomega.Expect(err).To(gomega.Succeed())
