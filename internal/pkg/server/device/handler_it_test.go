@@ -7,6 +7,7 @@ package device
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/nalej/device-manager/internal/pkg/entities"
 	"github.com/nalej/device-manager/internal/pkg/provider/latency"
 	"github.com/nalej/grpc-application-go"
@@ -320,10 +321,81 @@ var _ = ginkgo.Describe("Device service", func() {
 			retrieved := list.Devices[0]
 			gomega.Expect(retrieved.DeviceApiKey).Should(gomega.Equal(added.DeviceApiKey))
 		})
-		ginkgo.PIt("should be able to add a label to a device", func(){
+		ginkgo.It("should be able to add a label to a device", func(){
+			dg := CreateDeviceGroup(client, targetOrganization.OrganizationId, true, true)
+			registerRequest := &grpc_device_manager_go.RegisterDeviceRequest{
+				OrganizationId:       dg.OrganizationId,
+				DeviceGroupId:        dg.DeviceGroupId,
+				DeviceGroupApiKey:    dg.DeviceGroupApiKey,
+				DeviceId:             fmt.Sprintf("d-%s-%d", dg.DeviceGroupId, rand.Int()),
+				Labels:               nil,
+			}
+			added, err := client.RegisterDevice(context.Background(), registerRequest)
+			gomega.Expect(err).To(gomega.Succeed())
 
+			success, err := client.AddLabelToDevice(context.Background(), &grpc_device_manager_go.DeviceLabelRequest{
+				OrganizationId: dg.OrganizationId,
+				DeviceGroupId:dg.DeviceGroupId,
+				DeviceId: added.DeviceId,
+				Labels: map[string]string{"label1":"value1", "label2":"value2"},
+			})
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(success).NotTo(gomega.BeNil())
+
+			// check if the update works
+
+			device, err := client.GetDevice(context.Background(), &grpc_device_go.DeviceId{
+				OrganizationId: dg.OrganizationId,
+				DeviceGroupId: dg.DeviceGroupId,
+				DeviceId: added.DeviceId,
+			})
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(device).NotTo(gomega.BeNil())
+			gomega.Expect(len(device.Labels)).Should(gomega.Equal(2))
 		})
-		ginkgo.PIt("should be able to remove a label from a device", func(){
+		ginkgo.It("should be able to remove a label from a device", func(){
+			dg := CreateDeviceGroup(client, targetOrganization.OrganizationId, true, true)
+			registerRequest := &grpc_device_manager_go.RegisterDeviceRequest{
+				OrganizationId:       dg.OrganizationId,
+				DeviceGroupId:        dg.DeviceGroupId,
+				DeviceGroupApiKey:    dg.DeviceGroupApiKey,
+				DeviceId:             fmt.Sprintf("d-%s-%d", dg.DeviceGroupId, rand.Int()),
+				Labels:               map[string]string{"label1":"value1", "label2":"value2"},
+			}
+			added, err := client.RegisterDevice(context.Background(), registerRequest)
+			gomega.Expect(err).To(gomega.Succeed())
+
+			success, err := client.RemoveLabelFromDevice(context.Background(), &grpc_device_manager_go.DeviceLabelRequest{
+				OrganizationId: dg.OrganizationId,
+				DeviceGroupId:dg.DeviceGroupId,
+				DeviceId: added.DeviceId,
+				Labels: map[string]string{"label1":"value1"},
+			})
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(success).NotTo(gomega.BeNil())
+
+			// check if the update works
+
+			device, err := client.GetDevice(context.Background(), &grpc_device_go.DeviceId{
+				OrganizationId: dg.OrganizationId,
+				DeviceGroupId: dg.DeviceGroupId,
+				DeviceId: added.DeviceId,
+			})
+			gomega.Expect(err).To(gomega.Succeed())
+			gomega.Expect(device).NotTo(gomega.BeNil())
+			gomega.Expect(len(device.Labels)).Should(gomega.Equal(1))
+		})
+		ginkgo.It("should not be able to remove a label from a non exiting device", func(){
+			dg := CreateDeviceGroup(client, targetOrganization.OrganizationId, true, true)
+
+			success, err := client.RemoveLabelFromDevice(context.Background(), &grpc_device_manager_go.DeviceLabelRequest{
+				OrganizationId: dg.OrganizationId,
+				DeviceGroupId:dg.DeviceGroupId,
+				DeviceId: uuid.New().String(),
+				Labels: map[string]string{"label1":"value1"},
+			})
+			gomega.Expect(err).NotTo(gomega.Succeed())
+			gomega.Expect(success).To(gomega.BeNil())
 
 		})
 		ginkgo.It("should be able to update a device", func(){
@@ -483,5 +555,6 @@ var _ = ginkgo.Describe("Device service", func() {
 
 		})
 	})
+
 
 })
