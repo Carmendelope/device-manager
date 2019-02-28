@@ -464,10 +464,39 @@ func (m*Manager) ListDevices(deviceGroupID *grpc_device_go.DeviceGroupId) (*grpc
 
 }
 func (m*Manager) AddLabelToDevice(request *grpc_device_manager_go.DeviceLabelRequest) (*grpc_common_go.Success, error){
-	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented"))
+	ctx, cancel := context.WithTimeout(context.Background(), DeviceClientTimeout)
+	defer cancel()
+
+	_, err := m.devicesClient.UpdateDevice(ctx, &grpc_device_go.UpdateDeviceRequest{
+		OrganizationId: request.OrganizationId,
+		DeviceGroupId: request.DeviceGroupId,
+		DeviceId: request.DeviceId,
+		AddLabels: true,
+		RemoveLabels: false,
+		Labels: request.Labels,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &grpc_common_go.Success{}, nil
 }
+
 func (m*Manager) RemoveLabelFromDevice(request *grpc_device_manager_go.DeviceLabelRequest) (*grpc_common_go.Success, error){
-	return nil, conversions.ToGRPCError(derrors.NewUnimplementedError("not implemented"))
+	ctx, cancel := context.WithTimeout(context.Background(), DeviceClientTimeout)
+	defer cancel()
+
+	_, err := m.devicesClient.UpdateDevice(ctx, &grpc_device_go.UpdateDeviceRequest{
+		OrganizationId: request.OrganizationId,
+		DeviceGroupId: request.DeviceGroupId,
+		DeviceId: request.DeviceId,
+		AddLabels: false,
+		RemoveLabels: true,
+		Labels: request.Labels,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &grpc_common_go.Success{}, nil
 }
 func (m*Manager) UpdateDevice(request *grpc_device_manager_go.UpdateDeviceRequest) (*grpc_device_manager_go.Device, error){
 	aCtx, aCancel := context.WithTimeout(context.Background(), AuthxClientTimeout)
