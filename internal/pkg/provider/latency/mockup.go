@@ -124,3 +124,26 @@ func (m * MockupProvider) GetLatency(organizationID string, deviceGroupID string
 	return latencies, nil
 }
 
+func (m *MockupProvider) RemoveLatency(organizationID string, deviceGroupID string, deviceID string) derrors.Error{
+	m.Lock()
+	defer m.Unlock()
+
+	shortKey := m.getShortKey(organizationID, deviceGroupID, deviceID)
+	inserted, exists := m.lastInserted[shortKey]
+	if exists {
+		key := m.getKey(organizationID, deviceGroupID, deviceID, inserted)
+		delete(m.latency, key)
+	}
+	delete(m.lastInserted, shortKey)
+
+	groupKey := fmt.Sprintf("%s-%s", organizationID, deviceGroupID)
+	newLatencyList := make([]*entities.Latency, 0)
+	for _, l := range m.latencyGroup[groupKey]{
+		if l.DeviceId != deviceID {
+			newLatencyList = append(newLatencyList, l)
+		}
+	}
+	m.latencyGroup[groupKey] = newLatencyList
+
+	return nil
+}
