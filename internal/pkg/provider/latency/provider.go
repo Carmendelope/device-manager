@@ -26,4 +26,7 @@ type Provider interface {
 
 	GetLatency(organizationID string, deviceGroupID string, deviceID string) ([]*entities.Latency, derrors.Error)
 
+	// RemoveLatency removes the entries associated with a given device.
+	RemoveLatency(organizationID string, deviceGroupID string, deviceID string) derrors.Error
+
 }

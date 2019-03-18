@@ -185,7 +185,7 @@ func (m*Manager) deviceGroupHasApps(deviceGroupID *grpc_device_go.DeviceGroupId)
 	for _, desc := range descriptors.Descriptors{
 		for _, rule := range desc.Rules{
 			if rule.Access == grpc_application_go.PortAccess_DEVICE_GROUP{
-				for _, dg := range rule.DeviceGroups{
+				for _, dg := range rule.DeviceGroupIds{
 					if dg == deviceGroupID.DeviceGroupId{
 						return true, nil
 					}
@@ -519,3 +519,29 @@ func (m*Manager) UpdateDevice(request *grpc_device_manager_go.UpdateDeviceReques
 	return m.GetDevice(deviceID)
 }
 
+func (m*Manager) RemoveDevice(deviceID *grpc_device_go.DeviceId) (*grpc_common_go.Success, error){
+	aCtx, aCancel := context.WithTimeout(context.Background(), AuthxClientTimeout)
+	defer aCancel()
+
+	_, err := m.authxClient.RemoveDeviceCredentials(aCtx, deviceID)
+	if err != nil{
+		log.Warn().Interface("deviceID", deviceID).Msg("Device may be partially removed. Cannot remove auth information")
+	}
+
+
+	err = m.latencyProvider.RemoveLatency(deviceID.OrganizationId, deviceID.DeviceGroupId, deviceID.DeviceId)
+	if err != nil {
+		log.Warn().Interface("deviceID", deviceID).Msg("Device may be partially removed. Cannot remove device latencies")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), DeviceClientTimeout)
+	defer cancel()
+
+	removeRequest := &grpc_device_go.RemoveDeviceRequest{
+		OrganizationId:       deviceID.OrganizationId,
+		DeviceGroupId:        deviceID.DeviceGroupId,
+		DeviceId:             deviceID.DeviceId,
+	}
+
+	return m.devicesClient.RemoveDevice(ctx, removeRequest)
+}

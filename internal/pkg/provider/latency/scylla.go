@@ -210,3 +210,24 @@ func (sp * ScyllaProvider) GetLatency(organizationID string, deviceGroupID strin
 	return latencyList, nil
 }
 
+func (sp * ScyllaProvider) RemoveLatency(organizationID string, deviceGroupID string, deviceID string) derrors.Error{
+
+	sp.Lock()
+	defer sp.Unlock()
+
+	// check connection
+	err := sp.checkAndConnect()
+	if err != nil {
+		return err
+	}
+
+	stmt, _ := qb.Delete("latency").Where(qb.Eq("organization_id")).Where(qb.Eq("device_group_id")).Where(qb.Eq("device_id")).ToCql()
+	cqlErr := sp.Session.Query(stmt, organizationID, deviceGroupID, deviceID).Exec()
+
+	if cqlErr != nil {
+		return derrors.AsError(cqlErr, "cannot delete device group")
+	}
+
+	return nil
+
+}
