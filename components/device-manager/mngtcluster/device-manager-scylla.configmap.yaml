@@ -15,15 +15,25 @@ data:
     Create materialized view IF NOT EXISTS measure.deviceGrouplatency as  select * from measure.latency where organization_id is not null and device_group_id is not null and inserted is not null and device_id is not null primary key ((organization_id, device_group_id), inserted, device_id);
   node_alive.sh: |
     #!/bin/bash
-    echo 'executing script...'
-    KEYSPACE=$(cqlsh scylladb -e "DESCRIBE KEYSPACES")
-    while [ $? -ne 0 ]
-    do
-      echo 'sleep 1'
-      sleep 1
-      KEYSPACES=$(cqlsh scylladb -e "DESCRIBE KEYSPACES") 2> dev/null
-    done
-    echo 'creating database...'
+        sleep_time=15
+        echo 'executing script...'
+        KEYSPACE=$(cqlsh scylladb -e "DESCRIBE KEYSPACES")
+        while [ $? -ne 0 ]
+        do
+          echo 'waiting'  ${sleep_time}
+          sleep $sleep_time
+          case $sleep_time in
+            15)
+                sleep_time=10
+            ;;
+            **)
+              sleep_time=5
+            ;;
+         esac
+          KEYSPACES=$(cqlsh scylladb -e "DESCRIBE KEYSPACES") 2> dev/null
+        done
+        sleep 5
+        echo 'creating database...'
     cqlsh scylladb -f /opt/device-manager-scylla.cql
 
     exit;
