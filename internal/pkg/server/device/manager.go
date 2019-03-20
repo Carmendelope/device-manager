@@ -364,7 +364,16 @@ func (m*Manager) GetDevice(deviceID *grpc_device_go.DeviceId) (*grpc_device_mana
 	defer aCancel()
 	dc, err := m.authxClient.GetDeviceCredentials(aCtx, deviceID)
 
-	status := m.fillDeviceStatus(d.OrganizationId, d.DeviceGroupId, d.DeviceId )
+	status := grpc_device_manager_go.DeviceStatus_OFFLINE
+	latency, err := m.latencyProvider.GetLastLatency(d.OrganizationId, d.DeviceGroupId, d.DeviceId)
+	if err != nil {
+		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("error getting device latency")
+	}else{
+		status = m.fillDeviceStatus(latency)
+	}
+
+
+	//status := m.fillDeviceStatus(d.OrganizationId, d.DeviceGroupId, d.DeviceId )
 
 	return &grpc_device_manager_go.Device{
 		OrganizationId:       d.OrganizationId,
@@ -378,12 +387,9 @@ func (m*Manager) GetDevice(deviceID *grpc_device_go.DeviceId) (*grpc_device_mana
 	}, nil
 }
 
-func (m * Manager) fillDeviceStatus (OrganizationId string, DeviceGroupId string, DeviceId string) grpc_device_manager_go.DeviceStatus  {
+func (m * Manager) fillDeviceStatus (latency *entities.Latency) grpc_device_manager_go.DeviceStatus  { //(OrganizationId string, DeviceGroupId string, DeviceId string) grpc_device_manager_go.DeviceStatus  {
 	status := grpc_device_manager_go.DeviceStatus_OFFLINE
-	latency, err := m.latencyProvider.GetLastLatency(OrganizationId, DeviceGroupId, DeviceId)
-	if err != nil {
-		log.Error().Str("trace", conversions.ToDerror(err).DebugReport()).Msg("error getting device latency")
-	}else if latency.Latency != -1 { // if latency == -1 -> no ping found (no error, the device is OFFLINE)
+	if latency != nil && latency.Latency != -1 { // if latency == -1 -> no ping found (no error, the device is OFFLINE)
 		timeCalculated := time.Unix(latency.Inserted, 0).Add(m.threshold).Unix()
 		if timeCalculated > time.Now().Unix(){
 			status = grpc_device_manager_go.DeviceStatus_ONLINE
@@ -419,10 +425,11 @@ func (m*Manager) addAuthInfoToD(dg *grpc_device_go.Device) (*grpc_device_manager
 func (m*Manager)updateStatus (devices []*grpc_device_manager_go.Device, latency entities.Latency) {
 	for i:= 0; i< len(devices); i++ {
 		if devices[i].DeviceId == latency.DeviceId {
-			timeCalculated := time.Unix(latency.Inserted, 0).Add(m.threshold).Unix()
-			if timeCalculated > time.Now().Unix(){
-				devices[i].DeviceStatus = grpc_device_manager_go.DeviceStatus_ONLINE
-			}
+			devices[i].DeviceStatus = m.fillDeviceStatus(&latency)
+			//timeCalculated := time.Unix(latency.Inserted, 0).Add(m.threshold).Unix()
+			//if timeCalculated > time.Now().Unix(){
+		//		devices[i].DeviceStatus = grpc_device_manager_go.DeviceStatus_ONLINE
+		//	}
 		}
 	}
 }
