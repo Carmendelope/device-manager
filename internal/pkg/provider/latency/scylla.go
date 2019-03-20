@@ -102,42 +102,6 @@ func (sp * ScyllaProvider) AddPingLatency(latency entities.Latency ) derrors.Err
 	return nil
 }
 
-func (sp * ScyllaProvider) GetGroupIntervalLatencies (organizationID string, deviceGroupID string, duration time.Duration) ([]*entities.Latency, derrors.Error){
-	/*
-	sp.Lock()
-	defer sp.Unlock()
-
-	// check connection
-	err := sp.checkAndConnect()
-	if err != nil {
-		return nil, err
-	}
-
-	latencyList := make([]*entities.Latency, 0)
-	stmt, names := qb.Select("deviceGrouplatency").Where(qb.Eq("organization_id")).
-		Where(qb.Eq("device_group_id")).Where(qb.GtNamed("inserted", "inserted")).OrderBy("inserted", qb.DESC).ToCql()
-
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id": organizationID,
-		"device_group_id": deviceGroupID,
-		"inserted": time.Now().Add(-1 * duration).Unix(),
-	})
-
-	cqlErr := gocqlx.Select(&latencyList, q.Query)
-
-	if cqlErr != nil {
-		if cqlErr.Error() == rowNotFound {
-			return latencyList, nil
-		}else {
-			return nil, derrors.AsError(cqlErr, "cannot list group latencies")
-		}
-	}
-
-	return latencyList, nil
-*/
-	return nil, nil
-}
-
 func (sp * ScyllaProvider) GetLatency(organizationID string, deviceGroupID string, deviceID string) ([]*entities.Latency, derrors.Error){
 	sp.Lock()
 	defer sp.Unlock()

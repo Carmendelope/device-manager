@@ -9,7 +9,6 @@ import (
 	"github.com/nalej/derrors"
 	"github.com/nalej/device-manager/internal/pkg/entities"
 	"sync"
-	"time"
 )
 
 type MockupProvider struct {
@@ -53,30 +52,6 @@ func (m * MockupProvider) AddPingLatency(latency entities.Latency ) derrors.Erro
 	m.latency[key] = append(m.latency[key], &latency)
 
 	return nil
-}
-
-func (m * MockupProvider) GetGroupIntervalLatencies (organizationID string, deviceGroupID string, duration time.Duration) ([]*entities.Latency, derrors.Error) {
-	/*
-	m.Lock()
-
-	defer m.Unlock()
-
-	threshold := time.Now().Add(-1 * duration).Unix()
-	list, exists := m.latencyGroup[fmt.Sprintf("%s-%s", organizationID, deviceGroupID)]
-	result := make ([]*entities.Latency, 0)
-	if ! exists {
-		return result, nil
-	}
-
-	for _, latency := range list{
-		if latency.Inserted > threshold {
-			result = append(result, latency)
-		}
-	}
-
-	return result, nil
-	*/
-	return nil, nil
 }
 
 func (m * MockupProvider) GetLatency(organizationID string, deviceGroupID string, deviceID string) ([]*entities.Latency, derrors.Error){

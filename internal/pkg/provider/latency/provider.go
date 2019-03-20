@@ -7,7 +7,6 @@ package latency
 import (
 	"github.com/nalej/derrors"
 	"github.com/nalej/device-manager/internal/pkg/entities"
-	"time"
 )
 
 type Provider interface {
@@ -17,10 +16,6 @@ type Provider interface {
 	// ------------- //
 	// AddPingLatency adds a new latency
 	AddPingLatency(entities.Latency ) derrors.Error
-
-	// TODO: delete this !
-	// GetGroupIntervalLatencies get the last latency measures of a device_group (time indicated in duration parameter of latencies)
-	GetGroupIntervalLatencies(organizationID string, deviceGroupID string, duration time.Duration) ([]*entities.Latency, derrors.Error)
 
 	GetLatency(organizationID string, deviceGroupID string, deviceID string) ([]*entities.Latency, derrors.Error)
 
