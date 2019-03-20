@@ -32,7 +32,7 @@ import (
 	"strconv"
 )
 
-var _ = ginkgo.Describe("Scylla application provider", func(){
+var _ = ginkgo.Describe("Scylla latency provider", func(){
 
 
 	if ! utils.RunIntegrationTests() {

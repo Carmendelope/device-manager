@@ -76,6 +76,7 @@ func (sp *ScyllaProvider) Disconnect () {
 	}
 }
 
+// -- Latency
 func (sp * ScyllaProvider) AddPingLatency(latency entities.Latency ) derrors.Error {
 
 	sp.Lock()
@@ -100,46 +101,9 @@ func (sp * ScyllaProvider) AddPingLatency(latency entities.Latency ) derrors.Err
 
 	return nil
 }
-// GetLastPingLatency get the las latency measure of a device
-func (sp * ScyllaProvider) 	GetLastPingLatency (organizationID string, deviceGroupID string, deviceID string) (*entities.Latency, derrors.Error) {
-	sp.Lock()
-	defer sp.Unlock()
 
-	// check connection
-	err := sp.checkAndConnect()
-	if err != nil {
-		return nil, err
-	}
-
-	var latency entities.Latency
-	stmt, names := qb.Select("latency").Where(qb.Eq("organization_id")).
-	Where(qb.Eq("device_group_id")).Where(qb.Eq("device_id")).OrderBy("device_id", qb.DESC ).OrderBy("inserted", qb.DESC ).
-		Limit(1).ToCql()
-	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
-		"organization_id": organizationID,
-		"device_group_id": deviceGroupID,
-		"device_id": deviceID,
-	})
-
-	cqlErr := q.GetRelease(&latency)
-	if cqlErr != nil {
-		if cqlErr.Error() == rowNotFound {
-			return entities.NewEmptyLatency(), nil
-		}else{
-			return nil, derrors.AsError(err, "cannot Cannot retrieve last latency")
-		}
-	}
-
-	return &latency, nil
-
-}
-
-// by default -> 5 minutes
-func (sp * ScyllaProvider) 	GetGroupLatency (organizationID string, deviceGroupID string) ([]*entities.Latency, derrors.Error){
-	return sp.GetGroupIntervalLatencies(organizationID, deviceGroupID, limitTime)
-}
-
-func (sp * ScyllaProvider) 	GetGroupIntervalLatencies (organizationID string, deviceGroupID string, duration time.Duration) ([]*entities.Latency, derrors.Error){
+func (sp * ScyllaProvider) GetGroupIntervalLatencies (organizationID string, deviceGroupID string, duration time.Duration) ([]*entities.Latency, derrors.Error){
+	/*
 	sp.Lock()
 	defer sp.Unlock()
 
@@ -152,10 +116,6 @@ func (sp * ScyllaProvider) 	GetGroupIntervalLatencies (organizationID string, de
 	latencyList := make([]*entities.Latency, 0)
 	stmt, names := qb.Select("deviceGrouplatency").Where(qb.Eq("organization_id")).
 		Where(qb.Eq("device_group_id")).Where(qb.GtNamed("inserted", "inserted")).OrderBy("inserted", qb.DESC).ToCql()
-	/*
-	stmt, names := qb.Select("latency").Where(qb.Eq("organization_id")).
-			Where(qb.Eq("device_group_id")).OrderBy("device_id", qb.ASC ).ToCql()
-	*/
 
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		"organization_id": organizationID,
@@ -174,8 +134,10 @@ func (sp * ScyllaProvider) 	GetGroupIntervalLatencies (organizationID string, de
 	}
 
 	return latencyList, nil
-
+*/
+	return nil, nil
 }
+
 func (sp * ScyllaProvider) GetLatency(organizationID string, deviceGroupID string, deviceID string) ([]*entities.Latency, derrors.Error){
 	sp.Lock()
 	defer sp.Unlock()
@@ -230,4 +192,97 @@ func (sp * ScyllaProvider) RemoveLatency(organizationID string, deviceGroupID st
 
 	return nil
 
+}
+
+
+// -- Last Latency
+// GetLastPingLatency get the las latency measure of a device
+func (sp * ScyllaProvider) GetLastLatency (organizationID string, deviceGroupID string, deviceID string) (*entities.Latency, derrors.Error) {
+
+	sp.Lock()
+	defer sp.Unlock()
+
+	// check connection
+	err := sp.checkAndConnect()
+	if err != nil {
+		return nil, err
+	}
+
+	var latency entities.Latency
+
+	// get the lastPingLatency from LastLatency table
+	stmt, names := qb.Select("lastlatency").Where(qb.Eq("organization_id")).
+		Where(qb.Eq("device_group_id")).Where(qb.Eq("device_id")).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		"organization_id": organizationID,
+		"device_group_id": deviceGroupID,
+		"device_id": deviceID,
+	})
+
+	cqlErr := q.GetRelease(&latency)
+	if cqlErr != nil {
+		if cqlErr.Error() == rowNotFound {
+			return entities.NewEmptyLatency(), nil
+		}else{
+			return nil, derrors.AsError(err, "cannot Cannot retrieve last latency")
+		}
+	}
+
+	return &latency, nil
+
+}
+
+func (sp * ScyllaProvider) AddLastLatency (latency entities.Latency) derrors.Error {
+
+	sp.Lock()
+	defer sp.Unlock()
+
+	// check connection
+	err := sp.checkAndConnect()
+	if err != nil {
+		return err
+	}
+
+	// insert the application instance
+	stmt, names := qb.Insert("lastlatency").Columns("organization_id","device_group_id", "device_id",
+		"inserted","latency").TTL(ttlExpired).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(latency)
+	cqlErr := q.ExecRelease()
+
+	if cqlErr != nil {
+		return derrors.AsError(cqlErr, "cannot add last latency")
+	}
+
+	return nil
+}
+
+func (sp * ScyllaProvider) GetGroupLastLatencies(organizationID string, deviceGroupID string)([]*entities.Latency, derrors.Error) {
+	sp.Lock()
+	defer sp.Unlock()
+
+	// check connection
+	err := sp.checkAndConnect()
+	if err != nil {
+		return nil, err
+	}
+
+	latencyList := make([]*entities.Latency, 0)
+	stmt, names := qb.Select("lastlatency").Where(qb.Eq("organization_id")).
+		Where(qb.Eq("device_group_id")).ToCql()
+	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
+		"organization_id": organizationID,
+		"device_group_id": deviceGroupID,
+	})
+
+	cqlErr := gocqlx.Select(&latencyList, q.Query)
+
+	if cqlErr != nil {
+		if cqlErr.Error() == rowNotFound {
+			return latencyList, nil
+		}else {
+			return nil, derrors.AsError(cqlErr, "cannot list group latencies")
+		}
+	}
+
+	return latencyList, nil
 }

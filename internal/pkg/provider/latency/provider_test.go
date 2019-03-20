@@ -28,8 +28,7 @@ func RunTest(provider Provider) {
 		gomega.Expect(err).To(gomega.Succeed())
 
 	})
-
-	ginkgo.It("Should be able to get the last latency registry", func(){
+	ginkgo.It("Should be able to get the latencies of a device", func(){
 
 		latency := &entities.Latency{
 			OrganizationId: uuid.New().String(),
@@ -42,28 +41,24 @@ func RunTest(provider Provider) {
 		err := provider.AddPingLatency(*latency)
 		gomega.Expect(err).To(gomega.Succeed())
 
-		latencyLast := &entities.Latency{
+		latency2 := &entities.Latency{
 			OrganizationId: latency.OrganizationId,
 			DeviceGroupId: latency.DeviceGroupId,
 			DeviceId:  latency.DeviceId,
-			Latency: 200,
-			Inserted: time.Now().Unix(),
+			Latency: 300,
+			Inserted: time.Now().Unix()+4,
 		}
 
-		err = provider.AddPingLatency(*latencyLast)
+		err = provider.AddPingLatency(*latency2)
 		gomega.Expect(err).To(gomega.Succeed())
 
-		retrieved, err := provider.GetLastPingLatency(latency.OrganizationId, latency.DeviceGroupId, latency.DeviceId)
+		retrieved, err := provider.GetLatency(latency.OrganizationId, latency.DeviceGroupId, latency.DeviceId)
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(retrieved).NotTo(gomega.BeNil())
-		gomega.Expect(latencyLast.Latency).Should(gomega.Equal(retrieved.Latency))
-
+		gomega.Expect(len(retrieved)).Should(gomega.Equal(2))
 
 	})
-
-	ginkgo.It("Should not be able to get the last latency registry", func(){
-
-		nulTime := int64(0)
+	ginkgo.It("Should be able to remove a latency", func() {
 		latency := &entities.Latency{
 			OrganizationId: uuid.New().String(),
 			DeviceGroupId: uuid.New().String(),
@@ -72,15 +67,59 @@ func RunTest(provider Provider) {
 			Inserted: time.Now().Unix(),
 		}
 
-		retrieved, err := provider.GetLastPingLatency(latency.OrganizationId, latency.DeviceGroupId, latency.DeviceId)
+		err := provider.AddPingLatency(*latency)
+		gomega.Expect(err).To(gomega.Succeed())
+
+		err = provider.RemoveLatency(latency.OrganizationId, latency.DeviceGroupId, latency.DeviceId)
+		gomega.Expect(err).To(gomega.Succeed())
+	})
+
+	// ------------------------------
+	ginkgo.It("Should be able to add a last latency registry", func(){
+
+		latency := &entities.Latency{
+			OrganizationId: uuid.New().String(),
+			DeviceGroupId: uuid.New().String(),
+			DeviceId:  uuid.New().String(),
+			Latency: 300,
+			Inserted: time.Now().Unix(),
+		}
+
+		err := provider.AddLastLatency(*latency)
+		gomega.Expect(err).To(gomega.Succeed())
+
+	})
+	ginkgo.It("Should be able to get the last latency registry", func(){
+
+		latency := &entities.Latency{
+			OrganizationId: uuid.New().String(),
+			DeviceGroupId: uuid.New().String(),
+			DeviceId:  uuid.New().String(),
+			Latency: 300,
+			Inserted: time.Now().Unix(),
+		}
+
+		err := provider.AddLastLatency(*latency)
+		gomega.Expect(err).To(gomega.Succeed())
+
+		latencyLast := &entities.Latency{
+			OrganizationId: latency.OrganizationId,
+			DeviceGroupId: latency.DeviceGroupId,
+			DeviceId:  latency.DeviceId,
+			Latency: 200,
+			Inserted: time.Now().Unix(),
+		}
+
+		err = provider.AddLastLatency(*latencyLast)
+		gomega.Expect(err).To(gomega.Succeed())
+
+		retrieved, err := provider.GetLastLatency(latency.OrganizationId, latency.DeviceGroupId, latency.DeviceId)
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(retrieved).NotTo(gomega.BeNil())
-		gomega.Expect(retrieved.Latency).Should(gomega.Equal(-1))
-		gomega.Expect(retrieved.Inserted).Should(gomega.Equal(nulTime))
+		gomega.Expect(latencyLast.Latency).Should(gomega.Equal(retrieved.Latency))
 
 
 	})
-
 	ginkgo.It("Should be able to get the latency list of a group", func(){
 
 		organizationID := uuid.New().String()
@@ -95,11 +134,11 @@ func RunTest(provider Provider) {
 				Inserted:       time.Now().Unix()+int64(i),
 			}
 
-			err := provider.AddPingLatency(*latency)
+			err := provider.AddLastLatency(*latency)
 			gomega.Expect(err).To(gomega.Succeed())
 		}
 
-		list, err := provider.GetGroupLatency(organizationID, DeviceGroupId)
+		list, err := provider.GetGroupLastLatencies(organizationID, DeviceGroupId)
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(list).NotTo(gomega.BeNil())
 		gomega.Expect(len(list)).Should(gomega.Equal(numLatencies))
@@ -110,110 +149,10 @@ func RunTest(provider Provider) {
 		organizationID := uuid.New().String()
 		DeviceGroupId := uuid.New().String()
 
-		list, err := provider.GetGroupLatency(organizationID, DeviceGroupId)
+		list, err := provider.GetGroupLastLatencies(organizationID, DeviceGroupId)
 		gomega.Expect(err).To(gomega.Succeed())
 		gomega.Expect(list).NotTo(gomega.BeNil())
 		gomega.Expect(list).To(gomega.BeEmpty())
-
-	})
-
-	ginkgo.It("Should be able to get the latencies of a device", func(){
-
-		organizationID := uuid.New().String()
-		DeviceGroupId := uuid.New().String()
-		DeviceId := uuid.New().String()
-		numLatencies := 5
-		for i:=0 ; i< numLatencies; i++ {
-			latency := &entities.Latency{
-				OrganizationId: organizationID,
-				DeviceGroupId:  DeviceGroupId,
-				DeviceId:       DeviceId,
-				Latency:        rand.Intn(300) +1,
-				Inserted:       time.Now().Unix() + int64(i),
-			}
-
-			err := provider.AddPingLatency(*latency)
-			gomega.Expect(err).To(gomega.Succeed())
-		}
-
-		list, err := provider.GetLatency(organizationID, DeviceGroupId, DeviceId)
-		gomega.Expect(err).To(gomega.Succeed())
-		gomega.Expect(list).NotTo(gomega.BeNil())
-		gomega.Expect(len(list)).Should(gomega.Equal(numLatencies))
-
-	})
-	ginkgo.It("Should be able to get the an empty latency list of a device", func(){
-
-		organizationID := uuid.New().String()
-		DeviceGroupId := uuid.New().String()
-		DeviceId := uuid.New().String()
-
-		list, err := provider.GetLatency(organizationID, DeviceGroupId, DeviceId)
-		gomega.Expect(err).To(gomega.Succeed())
-		gomega.Expect(list).NotTo(gomega.BeNil())
-		gomega.Expect(list).To(gomega.BeEmpty())
-
-	})
-	ginkgo.It("Should be able to get last latency list of a group", func(){
-
-		organizationID := uuid.New().String()
-		DeviceGroupId := uuid.New().String()
-		// device1
-		numLatencies := 5
-
-		device1 := uuid.New().String()
-		for i:=0 ; i<numLatencies-1; i++ {
-			latency := &entities.Latency{
-				OrganizationId: organizationID,
-				DeviceGroupId:  DeviceGroupId,
-				DeviceId:       device1,
-				Latency:        rand.Intn(500) +1,
-				Inserted:       time.Now().Unix()+int64(i),
-			}
-
-			err := provider.AddPingLatency(*latency)
-			gomega.Expect(err).To(gomega.Succeed())
-		}
-		// inserted 10 minutes ago
-		latency := &entities.Latency{
-			OrganizationId: organizationID,
-			DeviceGroupId:  DeviceGroupId,
-			DeviceId:       device1,
-			Latency:        rand.Intn(500) +1,
-			Inserted:       time.Now().Add(-1*time.Duration(10)*time.Minute).Unix(),
-		}
-		err := provider.AddPingLatency(*latency)
-		gomega.Expect(err).To(gomega.Succeed())
-
-		// device2
-		device2 := uuid.New().String()
-		for i:=0 ; i<numLatencies-1; i++ {
-			latency := &entities.Latency{
-				OrganizationId: organizationID,
-				DeviceGroupId:  DeviceGroupId,
-				DeviceId:       device2,
-				Latency:        rand.Intn(500) +1,
-				Inserted:       time.Now().Unix()+int64(i),
-			}
-
-			err := provider.AddPingLatency(*latency)
-			gomega.Expect(err).To(gomega.Succeed())
-		}
-		// inserted 10 minutes ago
-		latency = &entities.Latency{
-			OrganizationId: organizationID,
-			DeviceGroupId:  DeviceGroupId,
-			DeviceId:       device2,
-			Latency:        rand.Intn(500) +1,
-			Inserted:       time.Now().Add(-1*time.Duration(10)*time.Minute).Unix(),
-		}
-		err = provider.AddPingLatency(*latency)
-		gomega.Expect(err).To(gomega.Succeed())
-
-		list, err := provider.GetGroupLatency(organizationID, DeviceGroupId)
-		gomega.Expect(err).To(gomega.Succeed())
-		gomega.Expect(list).NotTo(gomega.BeNil())
-		gomega.Expect(len(list)).Should(gomega.Equal(8))
 
 	})
 
