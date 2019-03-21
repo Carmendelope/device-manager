@@ -11,6 +11,7 @@ import (
 	"github.com/nalej/grpc-device-controller-go"
 	"github.com/nalej/grpc-device-go"
 	"github.com/nalej/grpc-device-manager-go"
+	"github.com/rs/zerolog/log"
 )
 
 type Manager struct {
@@ -27,10 +28,17 @@ func NewManager(provider latency.Provider) Manager {
 
 func (m * Manager) RegisterLatency (request *grpc_device_controller_go.RegisterLatencyRequest) (derrors.Error) {
 
-	// Provider.AddLatency
+	// AddLatency
 	toAdd := entities.NewPingLatencyFromGRPC(request)
 	err := m.pProvider.AddPingLatency(*toAdd)
 	if err != nil {
+		return err
+	}
+
+	// Update lastLatency info
+	err = m.pProvider.AddLastLatency(*toAdd)
+	if err != nil {
+		log.Warn().Interface("latency", toAdd).Msg("unable to update last latency")
 		return err
 	}
 
