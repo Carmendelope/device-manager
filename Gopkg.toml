@@ -32,7 +32,7 @@
 
 [[constraint]]
     name="github.com/nalej/grpc-device-go"
-    version="=v0.0.32"
+    version="=v0.0.35"
 
 [[constraint]]
     name="github.com/nalej/grpc-application-go"
@@ -40,7 +40,7 @@
 
 [[constraint]]
     name="github.com/nalej/grpc-device-manager-go"
-    version="=v0.0.7"
+    version="=v0.0.11"
 
 [[constraint]]
     name="github.com/scylladb/gocqlx"

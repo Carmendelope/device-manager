@@ -521,7 +521,11 @@ func (m*Manager) UpdateDevice(request *grpc_device_manager_go.UpdateDeviceReques
 		DeviceGroupId:        request.DeviceGroupId,
 		DeviceId:             request.DeviceId,
 	}
-	return m.GetDevice(deviceID)
+
+	device, err := m.GetDevice(deviceID)
+	device.Location = request.Location
+
+	return device, err
 }
 
 func (m*Manager) RemoveDevice(deviceID *grpc_device_go.DeviceId) (*grpc_common_go.Success, error){
