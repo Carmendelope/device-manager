@@ -312,6 +312,7 @@ func (m*Manager) addDeviceEntity(request *grpc_device_manager_go.RegisterDeviceR
 		DeviceGroupId:        request.DeviceGroupId,
 		DeviceId:             request.DeviceId,
 		Labels:               request.Labels,
+		AssetInfo:            request.AssetInfo,
 	}
 	added, err := m.devicesClient.AddDevice(ctx, addRequest)
 	if err != nil{
@@ -384,6 +385,7 @@ func (m*Manager) GetDevice(deviceID *grpc_device_go.DeviceId) (*grpc_device_mana
 		Enabled:              dc.Enabled,
 		DeviceApiKey:         dc.DeviceApiKey,
 		DeviceStatus: 		  status,
+		AssetInfo:            d.AssetInfo,
 	}, nil
 }
 
@@ -419,6 +421,7 @@ func (m*Manager) addAuthInfoToD(dg *grpc_device_go.Device) (*grpc_device_manager
 		Enabled:              dc.Enabled,
 		DeviceApiKey:         dc.DeviceApiKey,
 		DeviceStatus:         grpc_device_manager_go.DeviceStatus_OFFLINE, // offline by default
+		AssetInfo:            dg.AssetInfo,
 	}, nil
 }
 
