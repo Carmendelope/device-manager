@@ -28,19 +28,19 @@
 
 [[constraint]]
     name="github.com/nalej/grpc-authx-go"
-    version="=v0.0.42"
+    version="=v0.0.50"
 
 [[constraint]]
     name="github.com/nalej/grpc-device-go"
-    version="=v0.0.32"
+    version="=v0.0.36"
 
 [[constraint]]
     name="github.com/nalej/grpc-application-go"
-    version="=v0.0.63"
+    version="=v0.0.83"
 
 [[constraint]]
     name="github.com/nalej/grpc-device-manager-go"
-    version="=v0.0.7"
+    version="=v0.0.13"
 
 [[constraint]]
     name="github.com/scylladb/gocqlx"
