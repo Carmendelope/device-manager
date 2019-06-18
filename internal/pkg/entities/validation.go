@@ -19,6 +19,7 @@ const emptyName = "name cannot be empty"
 const emptyDeviceGroupApiKey = "device_group_api_key cannot be empty"
 const emptyLabels = "labels cannot be empty"
 const invalidLatency = "latency cannot be less than zero"
+const emptyLocation = "location cannot be empty"
 
 func ValidOrganizationID(organizationID *grpc_organization_go.OrganizationId) derrors.Error {
 	if organizationID.OrganizationId == "" {
@@ -116,6 +117,23 @@ func ValidUpdateDeviceRequest(request *grpc_device_manager_go.UpdateDeviceReques
 	}
 	if request.DeviceId == "" {
 		return derrors.NewInvalidArgumentError(emptyDeviceId)
+	}
+
+	return nil
+}
+
+func ValidUpdateDeviceLocationRequest(request *grpc_device_manager_go.UpdateDeviceLocationRequest) derrors.Error {
+	if request.OrganizationId == "" {
+		return derrors.NewInvalidArgumentError(emptyOrganizationId)
+	}
+	if request.DeviceGroupId == "" {
+		return derrors.NewInvalidArgumentError(emptyDeviceGroupId)
+	}
+	if request.DeviceId == "" {
+		return derrors.NewInvalidArgumentError(emptyDeviceId)
+	}
+	if request.Location != nil && request.Location.Geolocation == "" {
+		return derrors.NewInvalidArgumentError(emptyLocation)
 	}
 
 	return nil

@@ -104,6 +104,14 @@ func (h*Handler) UpdateDevice(ctx context.Context, request *grpc_device_manager_
 	return h.Manager.UpdateDevice(request)
 }
 
+func (h*Handler) UpdateDeviceLocation(ctx context.Context, request *grpc_device_manager_go.UpdateDeviceLocationRequest) (*grpc_device_manager_go.Device, error){
+	vErr := entities.ValidUpdateDeviceLocationRequest(request)
+	if vErr != nil {
+		return nil, conversions.ToGRPCError(vErr)
+	}
+	return h.Manager.UpdateDeviceLocation(request)
+}
+
 func (h*Handler) RemoveDevice(ctx context.Context, deviceID *grpc_device_go.DeviceId) (*grpc_common_go.Success, error){
 	vErr := entities.ValidDeviceID(deviceID)
 	if vErr != nil {

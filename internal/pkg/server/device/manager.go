@@ -526,6 +526,29 @@ func (m*Manager) UpdateDevice(request *grpc_device_manager_go.UpdateDeviceReques
 	}
 
 	device, err := m.GetDevice(deviceID)
+
+	return device, err
+}
+
+func (m*Manager) UpdateDeviceLocation(request *grpc_device_manager_go.UpdateDeviceLocationRequest) (*grpc_device_manager_go.Device, error){
+	aCtx, aCancel := context.WithTimeout(context.Background(), AuthxClientTimeout)
+	defer aCancel()
+	updateRequest := &grpc_authx_go.UpdateDeviceCredentialsRequest{
+		OrganizationId:       request.OrganizationId,
+		DeviceGroupId:        request.DeviceGroupId,
+		DeviceId:             request.DeviceId,
+	}
+	_, err := m.authxClient.UpdateDeviceCredentials(aCtx, updateRequest)
+	if err != nil{
+		return nil, err
+	}
+	deviceID := &grpc_device_go.DeviceId{
+		OrganizationId:       request.OrganizationId,
+		DeviceGroupId:        request.DeviceGroupId,
+		DeviceId:             request.DeviceId,
+	}
+
+	device, err := m.GetDevice(deviceID)
 	device.Location = request.Location
 
 	return device, err
