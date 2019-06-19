@@ -425,6 +425,21 @@ func (m*Manager) addAuthInfoToD(dg *grpc_device_go.Device) (*grpc_device_manager
 	}, nil
 }
 
+func (m*Manager) addAuthLatencyInfoToDevice(dg * grpc_device_go.Device) (*grpc_device_manager_go.Device, error){
+	withAuthx, err := m.addAuthInfoToD(dg)
+	if err != nil{
+		return nil, err
+	}
+
+	latency, derr := m.latencyProvider.GetLastLatency(dg.OrganizationId, dg.DeviceGroupId, dg.DeviceId)
+	if derr != nil{
+		return nil, conversions.ToGRPCError(derr)
+	}
+	withAuthx.DeviceStatus = m.fillDeviceStatus(latency)
+	return withAuthx, nil
+
+}
+
 func (m*Manager)updateStatus (devices []*grpc_device_manager_go.Device, latency entities.Latency) {
 	for i:= 0; i< len(devices); i++ {
 		if devices[i].DeviceId == latency.DeviceId {
@@ -531,27 +546,23 @@ func (m*Manager) UpdateDevice(request *grpc_device_manager_go.UpdateDeviceReques
 }
 
 func (m*Manager) UpdateDeviceLocation(request *grpc_device_manager_go.UpdateDeviceLocationRequest) (*grpc_device_manager_go.Device, error){
-	aCtx, aCancel := context.WithTimeout(context.Background(), AuthxClientTimeout)
-	defer aCancel()
-	updateRequest := &grpc_authx_go.UpdateDeviceCredentialsRequest{
+	ctx, cancel := context.WithTimeout(context.Background(), DeviceClientTimeout)
+	defer cancel()
+
+	updateRequest := &grpc_device_go.UpdateDeviceRequest{
 		OrganizationId:       request.OrganizationId,
 		DeviceGroupId:        request.DeviceGroupId,
 		DeviceId:             request.DeviceId,
+		UpdateLocation:       true,
+		Location:             request.Location,
 	}
-	_, err := m.authxClient.UpdateDeviceCredentials(aCtx, updateRequest)
+
+	updated, err := m.devicesClient.UpdateDevice(ctx, updateRequest)
 	if err != nil{
 		return nil, err
 	}
-	deviceID := &grpc_device_go.DeviceId{
-		OrganizationId:       request.OrganizationId,
-		DeviceGroupId:        request.DeviceGroupId,
-		DeviceId:             request.DeviceId,
-	}
+	return m.addAuthLatencyInfoToDevice(updated)
 
-	device, err := m.GetDevice(deviceID)
-	device.Location = request.Location
-
-	return device, err
 }
 
 func (m*Manager) RemoveDevice(deviceID *grpc_device_go.DeviceId) (*grpc_common_go.Success, error){
