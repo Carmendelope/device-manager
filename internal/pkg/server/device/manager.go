@@ -540,9 +540,9 @@ func (m*Manager) UpdateDeviceLocation(request *grpc_device_manager_go.UpdateDevi
 	if err != nil{
 		return nil, err
 	}
-	log.Debug().Interface("device", updated).Msg("updated device from system model")
+
 	device, err := m.addAuthLatencyInfoToDevice(updated)
-	log.Debug().Interface("device", device).Msg("updated device")
+
 	return device, err
 
 }
