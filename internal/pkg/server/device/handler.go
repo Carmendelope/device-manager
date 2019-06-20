@@ -12,6 +12,7 @@ import (
 	"github.com/nalej/grpc-device-manager-go"
 	"github.com/nalej/grpc-organization-go"
 	"github.com/nalej/grpc-utils/pkg/conversions"
+	"github.com/rs/zerolog/log"
 )
 
 // Handler structure for the node requests.
@@ -102,6 +103,15 @@ func (h*Handler) UpdateDevice(ctx context.Context, request *grpc_device_manager_
 		return nil, conversions.ToGRPCError(vErr)
 	}
 	return h.Manager.UpdateDevice(request)
+}
+
+func (h*Handler) UpdateDeviceLocation(ctx context.Context, request *grpc_device_manager_go.UpdateDeviceLocationRequest) (*grpc_device_manager_go.Device, error){
+	log.Debug().Interface("request", request).Msg("Update device location")
+	vErr := entities.ValidUpdateDeviceLocationRequest(request)
+	if vErr != nil {
+		return nil, conversions.ToGRPCError(vErr)
+	}
+	return h.Manager.UpdateDeviceLocation(request)
 }
 
 func (h*Handler) RemoveDevice(ctx context.Context, deviceID *grpc_device_go.DeviceId) (*grpc_common_go.Success, error){

@@ -52,7 +52,7 @@
   version = "v1.1.1"
 
 [[projects]]
-  digest = "1:00df3d333710921fa57027a908b1b0d83a7805fec4bcac92b2ce67b56eed2803"
+  digest = "1:286e87ff94e953edb261c012556764d5360fd7d892eeff43f44ccdbe1d0d2c0e"
   name = "github.com/grpc-ecosystem/grpc-gateway"
   packages = [
     "internal",
@@ -60,8 +60,8 @@
     "utilities",
   ]
   pruneopts = ""
-  revision = "cddead4ec1d10cc62f08e1fd6f8591fbe71cfff9"
-  version = "v1.9.1"
+  revision = "cd0c8ef3533e9c04e6520cac37a81fe262fb0b34"
+  version = "v1.9.2"
 
 [[projects]]
   branch = "master"
@@ -134,20 +134,20 @@
   version = "v0.0.8"
 
 [[projects]]
-  digest = "1:f18300a019aa912c9ef686b87ba734cdc851295ffc72c5b3cebcad54507d57cc"
+  digest = "1:3ca41f78bb85f99af2d8700df5eb03447f0660fba1360d78bf3fa6d10d89ac85"
   name = "github.com/nalej/grpc-device-go"
   packages = ["."]
   pruneopts = ""
-  revision = "047fcac2cd225b26c5a768691100c7912b6202ed"
-  version = "v0.0.36"
+  revision = "4d8993a2e3a050aff85f5f34e0508f84a6ccb270"
+  version = "v0.0.38"
 
 [[projects]]
-  digest = "1:9ef7ae7251d71ade21fb00ed620d3caeb0d44efb636f7d44e71bc53678e35c93"
+  digest = "1:8bf6a4f61d120a58f7d0f5c623dfd0767ae7719fc98f9ebd12c0cd96205c6e12"
   name = "github.com/nalej/grpc-device-manager-go"
   packages = ["."]
   pruneopts = ""
-  revision = "3ac1cd3df9e7f8a4eb05c86f8af1d5502295ed70"
-  version = "v0.0.13"
+  revision = "63520a6d8f6e6adaa2e49dcd0fd970eaf285e1de"
+  version = "v0.0.14"
 
 [[projects]]
   digest = "1:e52a6409dee0debe0f68f7a1c77036d4120115ea1d1491ba93ebf109aa8bb50a"
@@ -283,7 +283,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e8dcab1991c5afb5f4cf88ebfbe7edc85407cc3c3a0768e705e10158b2036963"
+  digest = "1:3c5c541597f5c5bd3259032815be4813fd76e05cfebab38e63c21facc45aaf30"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -298,15 +298,15 @@
     "trace",
   ]
   pruneopts = ""
-  revision = "d28f0bde5980168871434b95cfc858db9f2a7a99"
+  revision = "b5b0513f8c1bb7c1e3e6f168fba117131fe2614a"
 
 [[projects]]
   branch = "master"
-  digest = "1:3e58d7c7f8e8393f1738c1e57295392d3a0560a1785738010ce40a87c3fe1096"
+  digest = "1:794f69a2bed5661c1bc3a290f0f69583b0697d48b32e98cc831da6d38aa88847"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = ""
-  revision = "15dcb6c0061f497a3f66e3ea034b629c6dd4d99e"
+  revision = "516e3c20635fbe39539f7ed361a15c51fec29cd8"
 
 [[projects]]
   digest = "1:740b51a55815493a8d0f2b1e0d0ae48fe48953bf7eaf3fcc4198823bf67768c0"
