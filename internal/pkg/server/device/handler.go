@@ -106,7 +106,7 @@ func (h*Handler) UpdateDevice(ctx context.Context, request *grpc_device_manager_
 }
 
 func (h*Handler) UpdateDeviceLocation(ctx context.Context, request *grpc_device_manager_go.UpdateDeviceLocationRequest) (*grpc_device_manager_go.Device, error){
-	log.Debug().Msg("Update device location")
+	log.Debug().Interface("request", request).Msg("Update device location")
 	vErr := entities.ValidUpdateDeviceLocationRequest(request)
 	if vErr != nil {
 		return nil, conversions.ToGRPCError(vErr)

@@ -449,7 +449,6 @@
     "github.com/nalej/grpc-device-controller-go",
     "github.com/nalej/grpc-device-go",
     "github.com/nalej/grpc-device-manager-go",
-    "github.com/nalej/grpc-inventory-go",
     "github.com/nalej/grpc-organization-go",
     "github.com/nalej/grpc-utils/pkg/conversions",
     "github.com/nalej/grpc-utils/pkg/test",
