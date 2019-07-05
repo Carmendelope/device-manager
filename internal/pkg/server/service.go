@@ -5,16 +5,15 @@
 package server
 
 import (
-	lat "github.com/nalej/device-manager/internal/pkg/server/latency"
-	"github.com/nalej/device-manager/internal/pkg/provider/latency"
-	"github.com/nalej/device-manager/internal/pkg/server/device"
-	"github.com/nalej/grpc-authx-go"
-	"github.com/nalej/grpc-device-go"
-	"github.com/nalej/grpc-application-go"
-	"github.com/nalej/grpc-device-manager-go"
-	"github.com/nalej/grpc-utils/pkg/tools"
 	"fmt"
 	"github.com/nalej/derrors"
+	"github.com/nalej/device-manager/internal/pkg/provider/latency"
+	"github.com/nalej/device-manager/internal/pkg/server/device"
+	lat "github.com/nalej/device-manager/internal/pkg/server/latency"
+	"github.com/nalej/grpc-application-go"
+	"github.com/nalej/grpc-authx-go"
+	"github.com/nalej/grpc-device-go"
+	"github.com/nalej/grpc-device-manager-go"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -24,14 +23,12 @@ import (
 // Service structure with the configuration and the gRPC server.
 type Service struct {
 	Configuration Config
-	Server * tools.GenericGRPCServer
 }
 
 // NewService creates a new system model service.
 func NewService(conf Config) *Service {
 	return &Service{
 		conf,
-		tools.NewGenericGRPCServer(uint32(conf.Port)),
 	}
 }
 // Providers structure with all the providers in the system.
