@@ -198,6 +198,22 @@ func (m*Manager) deviceGroupHasApps(deviceGroupID *grpc_device_go.DeviceGroupId)
 	return false, nil
 }
 
+func (m*Manager) deviceGroupHasDevices(deviceGroupID *grpc_device_go.DeviceGroupId) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), DeviceClientTimeout)
+	defer cancel()
+
+	devices, err := m.devicesClient.ListDevices(ctx, deviceGroupID)
+	if err != nil{
+		return false, err
+	}
+
+	if devices != nil && len(devices.Devices) > 0 {
+		return true, nil
+	}
+
+	return false, nil
+}
+
 func (m*Manager) removeDevice(deviceID *grpc_device_go.DeviceId) error {
 	aCtx, aCancel := context.WithTimeout(context.Background(), AuthxClientTimeout)
 	defer aCancel()
@@ -251,13 +267,21 @@ func (m*Manager) RemoveDeviceGroup(deviceGroupID *grpc_device_go.DeviceGroupId) 
 	if apps{
 		return nil, derrors.NewFailedPreconditionError("device group has application descriptors linked to it")
 	}
+	devs, err := m.deviceGroupHasDevices(deviceGroupID)
+	if err != nil{
+		log.Debug().Msg("cannot determine if a device group as it has devices associated to it")
+		return nil, err
+	}
+	if devs{
+		return nil, derrors.NewFailedPreconditionError("device group has devices associated to it")
+	}
+
 	// First deactivate the device group so that sensors will
 	err = m.disableDeviceGroup(deviceGroupID)
 	if err != nil{
 		log.Debug().Msg("cannot disable device group")
 		return nil, err
 	}
-
 	devices, err := m.ListDevices(deviceGroupID)
 	if err != nil{
 		log.Debug().Msg("cannot retrieve the list of devices to be removed")
