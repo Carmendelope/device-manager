@@ -1,6 +1,10 @@
 {
   "language": "golang",
+  "version": "v0.4.0",
   "application_list": [
+    "device-manager"
+  ],
+  "image_list": [
     "device-manager"
   ],
   "tools": [
