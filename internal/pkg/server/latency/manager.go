@@ -28,7 +28,6 @@ import (
 
 type Manager struct {
 	pProvider latency.Provider
-
 }
 
 // NewManager creates a Manager using a set of clients.
@@ -38,7 +37,7 @@ func NewManager(provider latency.Provider) Manager {
 	}
 }
 
-func (m * Manager) RegisterLatency (request *grpc_device_controller_go.RegisterLatencyRequest) (derrors.Error) {
+func (m *Manager) RegisterLatency(request *grpc_device_controller_go.RegisterLatencyRequest) derrors.Error {
 
 	// AddLatency
 	toAdd := entities.NewPingLatencyFromGRPC(request)
@@ -54,12 +53,12 @@ func (m * Manager) RegisterLatency (request *grpc_device_controller_go.RegisterL
 		return err
 	}
 
-	return  nil
+	return nil
 }
 
-func (m * Manager) GetLatency(device *grpc_device_go.DeviceId) (*grpc_device_manager_go.LatencyMeasure, derrors.Error) {
+func (m *Manager) GetLatency(device *grpc_device_go.DeviceId) (*grpc_device_manager_go.LatencyMeasure, derrors.Error) {
 	return nil, derrors.NewUnimplementedError("not implemented yet")
 }
-func (m * Manager) GetLatencyList(group *grpc_device_go.DeviceGroupId) (*grpc_device_manager_go.LatencyMeasureList, derrors.Error){
+func (m *Manager) GetLatencyList(group *grpc_device_go.DeviceGroupId) (*grpc_device_manager_go.LatencyMeasureList, derrors.Error) {
 	return nil, derrors.NewUnimplementedError("not implemented yet")
 }

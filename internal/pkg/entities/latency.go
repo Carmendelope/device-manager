@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2019 Nalej
  *
@@ -30,28 +29,27 @@ type Latency struct {
 	// device identifier
 	DeviceId string `json:"device_id,omitempty"`
 	// Latency to register
-	Latency  int `json:"latency,omitempty"`
+	Latency int `json:"latency,omitempty"`
 	// timestamp
-	Inserted int64   `json:"inserted, omitempty"`
+	Inserted int64 `json:"inserted, omitempty"`
 }
 
-func NewEmptyLatency () *Latency{
+func NewEmptyLatency() *Latency {
 	return &Latency{
 		OrganizationId: "",
-		DeviceGroupId: 	"",
-		DeviceId: 		"",
-		Latency: 		-1,
-		Inserted: 		0,
+		DeviceGroupId:  "",
+		DeviceId:       "",
+		Latency:        -1,
+		Inserted:       0,
 	}
 }
 
-
-func NewPingLatencyFromGRPC(request * grpc_device_controller_go.RegisterLatencyRequest) *Latency{
+func NewPingLatencyFromGRPC(request *grpc_device_controller_go.RegisterLatencyRequest) *Latency {
 	return &Latency{
 		OrganizationId: request.OrganizationId,
-		DeviceGroupId: 	request.DeviceGroupId,
-		DeviceId: 		request.DeviceId,
-		Latency: 		int(request.Latency),
-		Inserted: 		time.Now().Unix(),
+		DeviceGroupId:  request.DeviceGroupId,
+		DeviceId:       request.DeviceId,
+		Latency:        int(request.Latency),
+		Inserted:       time.Now().Unix(),
 	}
 }

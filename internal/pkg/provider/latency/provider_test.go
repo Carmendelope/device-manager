@@ -26,28 +26,28 @@ import (
 )
 
 func RunTest(provider Provider) {
-	ginkgo.It("Should be able to add a latency registry", func(){
+	ginkgo.It("Should be able to add a latency registry", func() {
 
 		latency := &entities.Latency{
 			OrganizationId: uuid.New().String(),
-			DeviceGroupId: uuid.New().String(),
-			DeviceId:  uuid.New().String(),
-			Latency: 300,
-			Inserted: time.Now().Unix(),
+			DeviceGroupId:  uuid.New().String(),
+			DeviceId:       uuid.New().String(),
+			Latency:        300,
+			Inserted:       time.Now().Unix(),
 		}
 
 		err := provider.AddPingLatency(*latency)
 		gomega.Expect(err).To(gomega.Succeed())
 
 	})
-	ginkgo.It("Should be able to get the latencies of a device", func(){
+	ginkgo.It("Should be able to get the latencies of a device", func() {
 
 		latency := &entities.Latency{
 			OrganizationId: uuid.New().String(),
-			DeviceGroupId: uuid.New().String(),
-			DeviceId:  uuid.New().String(),
-			Latency: 300,
-			Inserted: time.Now().Unix(),
+			DeviceGroupId:  uuid.New().String(),
+			DeviceId:       uuid.New().String(),
+			Latency:        300,
+			Inserted:       time.Now().Unix(),
 		}
 
 		err := provider.AddPingLatency(*latency)
@@ -55,10 +55,10 @@ func RunTest(provider Provider) {
 
 		latency2 := &entities.Latency{
 			OrganizationId: latency.OrganizationId,
-			DeviceGroupId: latency.DeviceGroupId,
-			DeviceId:  latency.DeviceId,
-			Latency: 300,
-			Inserted: time.Now().Unix()+4,
+			DeviceGroupId:  latency.DeviceGroupId,
+			DeviceId:       latency.DeviceId,
+			Latency:        300,
+			Inserted:       time.Now().Unix() + 4,
 		}
 
 		err = provider.AddPingLatency(*latency2)
@@ -73,10 +73,10 @@ func RunTest(provider Provider) {
 	ginkgo.It("Should be able to remove a latency", func() {
 		latency := &entities.Latency{
 			OrganizationId: uuid.New().String(),
-			DeviceGroupId: uuid.New().String(),
-			DeviceId:  uuid.New().String(),
-			Latency: 300,
-			Inserted: time.Now().Unix(),
+			DeviceGroupId:  uuid.New().String(),
+			DeviceId:       uuid.New().String(),
+			Latency:        300,
+			Inserted:       time.Now().Unix(),
 		}
 
 		err := provider.AddPingLatency(*latency)
@@ -87,28 +87,28 @@ func RunTest(provider Provider) {
 	})
 
 	// ------------------------------
-	ginkgo.It("Should be able to add a last latency registry", func(){
+	ginkgo.It("Should be able to add a last latency registry", func() {
 
 		latency := &entities.Latency{
 			OrganizationId: uuid.New().String(),
-			DeviceGroupId: uuid.New().String(),
-			DeviceId:  uuid.New().String(),
-			Latency: 300,
-			Inserted: time.Now().Unix(),
+			DeviceGroupId:  uuid.New().String(),
+			DeviceId:       uuid.New().String(),
+			Latency:        300,
+			Inserted:       time.Now().Unix(),
 		}
 
 		err := provider.AddLastLatency(*latency)
 		gomega.Expect(err).To(gomega.Succeed())
 
 	})
-	ginkgo.It("Should be able to get the last latency registry", func(){
+	ginkgo.It("Should be able to get the last latency registry", func() {
 
 		latency := &entities.Latency{
 			OrganizationId: uuid.New().String(),
-			DeviceGroupId: uuid.New().String(),
-			DeviceId:  uuid.New().String(),
-			Latency: 300,
-			Inserted: time.Now().Unix(),
+			DeviceGroupId:  uuid.New().String(),
+			DeviceId:       uuid.New().String(),
+			Latency:        300,
+			Inserted:       time.Now().Unix(),
 		}
 
 		err := provider.AddLastLatency(*latency)
@@ -116,10 +116,10 @@ func RunTest(provider Provider) {
 
 		latencyLast := &entities.Latency{
 			OrganizationId: latency.OrganizationId,
-			DeviceGroupId: latency.DeviceGroupId,
-			DeviceId:  latency.DeviceId,
-			Latency: 200,
-			Inserted: time.Now().Unix(),
+			DeviceGroupId:  latency.DeviceGroupId,
+			DeviceId:       latency.DeviceId,
+			Latency:        200,
+			Inserted:       time.Now().Unix(),
 		}
 
 		err = provider.AddLastLatency(*latencyLast)
@@ -130,20 +130,19 @@ func RunTest(provider Provider) {
 		gomega.Expect(retrieved).NotTo(gomega.BeNil())
 		gomega.Expect(latencyLast.Latency).Should(gomega.Equal(retrieved.Latency))
 
-
 	})
-	ginkgo.It("Should be able to get the latency list of a group", func(){
+	ginkgo.It("Should be able to get the latency list of a group", func() {
 
 		organizationID := uuid.New().String()
 		DeviceGroupId := uuid.New().String()
 		numLatencies := 5
-		for i:=0 ; i< numLatencies; i++ {
+		for i := 0; i < numLatencies; i++ {
 			latency := &entities.Latency{
 				OrganizationId: organizationID,
 				DeviceGroupId:  DeviceGroupId,
 				DeviceId:       uuid.New().String(),
-				Latency:        rand.Intn(500) +1,
-				Inserted:       time.Now().Unix()+int64(i),
+				Latency:        rand.Intn(500) + 1,
+				Inserted:       time.Now().Unix() + int64(i),
 			}
 
 			err := provider.AddLastLatency(*latency)
@@ -156,7 +155,7 @@ func RunTest(provider Provider) {
 		gomega.Expect(len(list)).Should(gomega.Equal(numLatencies))
 
 	})
-	ginkgo.It("Should be able to get an empty latency list of a non existing group", func(){
+	ginkgo.It("Should be able to get an empty latency list of a non existing group", func() {
 
 		organizationID := uuid.New().String()
 		DeviceGroupId := uuid.New().String()

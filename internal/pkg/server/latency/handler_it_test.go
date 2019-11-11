@@ -64,18 +64,17 @@ var _ = ginkgo.Describe("Latency Register", func() {
 		listener.Close()
 	})
 
-	ginkgo.It("should be able to register a ping Latency", func(){
+	ginkgo.It("should be able to register a ping Latency", func() {
 		toAdd := &grpc_device_controller_go.RegisterLatencyRequest{
 			OrganizationId: uuid.New().String(),
 			DeviceGroupId:  uuid.New().String(),
 			DeviceId:       uuid.New().String(),
-			Latency:        rand.Int31n(1000) +1,
+			Latency:        rand.Int31n(1000) + 1,
 		}
 
 		success, err := client.RegisterLatency(context.Background(), toAdd)
 		gomega.Expect(err).Should(gomega.Succeed())
-			gomega.Expect(success).ShouldNot(gomega.BeNil())
+		gomega.Expect(success).ShouldNot(gomega.BeNil())
 	})
-
 
 })

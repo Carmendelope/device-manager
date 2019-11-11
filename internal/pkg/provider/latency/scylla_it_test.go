@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
- /*
+/*
  Steps to test:
  -------------
  1) launch docker image
@@ -32,22 +32,21 @@
  IT_SCYLLA_PORT=9042
  IT_NALEJ_KEYSPACE=measure
 
-  */
+*/
 package latency
 
 import (
+	"github.com/nalej/device-manager/internal/pkg/utils"
 	"github.com/onsi/ginkgo"
 	"github.com/rs/zerolog/log"
-	"github.com/nalej/device-manager/internal/pkg/utils"
 
 	"os"
 	"strconv"
 )
 
-var _ = ginkgo.Describe("Scylla latency provider", func(){
+var _ = ginkgo.Describe("Scylla latency provider", func() {
 
-
-	if ! utils.RunIntegrationTests() {
+	if !utils.RunIntegrationTests() {
 		log.Warn().Msg("Integration tests are skipped")
 		return
 	}

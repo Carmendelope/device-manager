@@ -30,9 +30,9 @@ var debugLevel bool
 var consoleLogging bool
 
 var rootCmd = &cobra.Command{
-	Use:   "device-manager",
-	Short: "Device Manager component",
-	Long:  `The device manager provides access to device related operations.`,
+	Use:     "device-manager",
+	Short:   "Device Manager component",
+	Long:    `The device manager provides access to device related operations.`,
 	Version: "unknown-version",
 
 	Run: func(cmd *cobra.Command, args []string) {

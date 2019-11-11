@@ -27,7 +27,7 @@ type Provider interface {
 	// -- Latency -- //
 	// ------------- //
 	// AddPingLatency adds a new latency
-	AddPingLatency(entities.Latency ) derrors.Error
+	AddPingLatency(entities.Latency) derrors.Error
 
 	GetLatency(organizationID string, deviceGroupID string, deviceID string) ([]*entities.Latency, derrors.Error)
 
@@ -38,11 +38,11 @@ type Provider interface {
 	// -- Last Latency -- //
 	// ------------------ //
 	// AddLastLatency
-	AddLastLatency (latency entities.Latency) derrors.Error
+	AddLastLatency(latency entities.Latency) derrors.Error
 
 	// GetLastPingLatency get the las latency measure of a device
-	GetLastLatency (organizationID string, deviceGroupID string, deviceID string) (*entities.Latency, derrors.Error)
+	GetLastLatency(organizationID string, deviceGroupID string, deviceID string) (*entities.Latency, derrors.Error)
 
 	// GetGroupLastLatencies get all the last latencies of the devices in the group
-	GetGroupLastLatencies(organizationID string, deviceGroupID string)([]*entities.Latency, derrors.Error)
+	GetGroupLastLatencies(organizationID string, deviceGroupID string) ([]*entities.Latency, derrors.Error)
 }

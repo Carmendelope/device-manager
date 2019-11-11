@@ -21,7 +21,7 @@ import (
 	"testing"
 )
 
-func TestPingProviderPackage(t *testing.T){
+func TestPingProviderPackage(t *testing.T) {
 	gomega.RegisterFailHandler(ginkgo.Fail)
 	ginkgo.RunSpecs(t, "PingProviders package suite")
 }

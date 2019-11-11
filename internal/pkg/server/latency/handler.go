@@ -36,39 +36,41 @@ func NewHandler(manager Manager) *Handler {
 	return &Handler{manager}
 }
 
-func (h * Handler) RegisterLatency (ctx context.Context, request *grpc_device_controller_go.RegisterLatencyRequest) (*grpc_common_go.Success, error) {
+func (h *Handler) RegisterLatency(ctx context.Context, request *grpc_device_controller_go.RegisterLatencyRequest) (*grpc_common_go.Success, error) {
 	err := entities.ValidRegisterLatencyRequest(request)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
 
-	err =  h.Manager.RegisterLatency(request)
+	err = h.Manager.RegisterLatency(request)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
 	return &grpc_common_go.Success{}, nil
 }
+
 // TODO: change getLatency to GetDeviceLatencies
-func (h * Handler) GetLatency(ctx context.Context, device *grpc_device_go.DeviceId) (*grpc_device_manager_go.LatencyMeasure, error) {
+func (h *Handler) GetLatency(ctx context.Context, device *grpc_device_go.DeviceId) (*grpc_device_manager_go.LatencyMeasure, error) {
 	err := entities.ValidDeviceID(device)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
 
-	list, err :=  h.Manager.GetLatency(device)
+	list, err := h.Manager.GetLatency(device)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
 	return list, nil
 }
+
 // TODO: change getLatency to GetDeviceGroupLatencies
-func (h * Handler) GetLatencyList(ctx context.Context, group *grpc_device_go.DeviceGroupId) (*grpc_device_manager_go.LatencyMeasureList, error){
+func (h *Handler) GetLatencyList(ctx context.Context, group *grpc_device_go.DeviceGroupId) (*grpc_device_manager_go.LatencyMeasureList, error) {
 	err := entities.ValidDeviceGroupID(group)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}
 
-	list, err :=  h.Manager.GetLatencyList(group)
+	list, err := h.Manager.GetLatencyList(group)
 	if err != nil {
 		return nil, conversions.ToGRPCError(err)
 	}

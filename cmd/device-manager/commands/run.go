@@ -23,7 +23,6 @@ import (
 	"time"
 )
 
-
 const DefaultDeviceStatusThreshold = "3m"
 
 var config = server.Config{}
@@ -42,7 +41,6 @@ var runCmd = &cobra.Command{
 
 func init() {
 	d, _ := time.ParseDuration(DefaultDeviceStatusThreshold)
-
 
 	runCmd.Flags().IntVar(&config.Port, "port", 6010, "Port to launch the Device gRPC API")
 	runCmd.PersistentFlags().StringVar(&config.SystemModelAddress, "systemModelAddress", "localhost:8800",
