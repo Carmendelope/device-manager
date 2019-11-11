@@ -1,5 +1,17 @@
 /*
- * Copyright (C) 2019 Nalej - All Rights Reserved
+ * Copyright 2019 Nalej
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package server
@@ -31,29 +43,29 @@ func NewService(conf Config) *Service {
 		conf,
 	}
 }
+
 // Providers structure with all the providers in the system.
 type Providers struct {
-	pProvider  latency.Provider
+	pProvider latency.Provider
 }
 
 // CreateInMemoryProviders returns a set of in-memory providers.
-func (s *Service) CreateInMemoryProviders() * Providers {
+func (s *Service) CreateInMemoryProviders() *Providers {
 	return &Providers{
 		pProvider: latency.NewMockupProvider(),
 	}
 }
 
 // CreateDBScyllaProviders returns a set of in-memory providers.
-func (s *Service) CreateDBScyllaProviders() * Providers {
+func (s *Service) CreateDBScyllaProviders() *Providers {
 	return &Providers{
 		pProvider: latency.NewScyllaProvider(
 			s.Configuration.ScyllaDBAddress, s.Configuration.ScyllaDBPort, s.Configuration.KeySpace),
 	}
 }
 
-
 // GetProviders builds the providers according to the selected backend.
-func (s *Service) GetProviders() * Providers {
+func (s *Service) GetProviders() *Providers {
 	if s.Configuration.UseInMemoryProviders {
 		return s.CreateInMemoryProviders()
 	} else if s.Configuration.UseDBScyllaProviders {
@@ -65,20 +77,20 @@ func (s *Service) GetProviders() * Providers {
 
 // Clients structure with the gRPC clients for remote services.
 type Clients struct {
-	AuthxClient grpc_authx_go.AuthxClient
+	AuthxClient   grpc_authx_go.AuthxClient
 	DevicesClient grpc_device_go.DevicesClient
-	AppsClient grpc_application_go.ApplicationsClient
+	AppsClient    grpc_application_go.ApplicationsClient
 }
 
 // GetClients creates the required connections with the remote clients.
-func (s * Service) GetClients() (* Clients, derrors.Error) {
+func (s *Service) GetClients() (*Clients, derrors.Error) {
 	authxConn, err := grpc.Dial(s.Configuration.AuthxAddress, grpc.WithInsecure())
-	if err != nil{
+	if err != nil {
 		return nil, derrors.AsError(err, "cannot create connection with the authx component")
 	}
 
 	smConn, err := grpc.Dial(s.Configuration.SystemModelAddress, grpc.WithInsecure())
-	if err != nil{
+	if err != nil {
 		return nil, derrors.AsError(err, "cannot create connection with the system model component")
 	}
 
@@ -92,12 +104,12 @@ func (s * Service) GetClients() (* Clients, derrors.Error) {
 // Run the service, launch the REST service handler.
 func (s *Service) Run() error {
 	cErr := s.Configuration.Validate()
-	if cErr != nil{
+	if cErr != nil {
 		log.Fatal().Str("err", cErr.DebugReport()).Msg("invalid configuration")
 	}
 	s.Configuration.Print()
 	clients, cErr := s.GetClients()
-	if cErr != nil{
+	if cErr != nil {
 		log.Fatal().Str("err", cErr.DebugReport()).Msg("Cannot create clients")
 	}
 

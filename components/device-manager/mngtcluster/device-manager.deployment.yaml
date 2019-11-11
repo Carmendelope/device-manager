@@ -25,7 +25,6 @@ spec:
         imagePullPolicy: Always
         args:
         - "run"
-        - "--debug"
         - "--useDBScyllaProviders=true"
         - "--scyllaDBAddress=scylladb.__NPH_NAMESPACE"
         - "--scyllaDBKeyspace=measure"

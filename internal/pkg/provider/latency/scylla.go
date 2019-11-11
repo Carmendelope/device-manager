@@ -1,5 +1,17 @@
 /*
- * Copyright (C) 2019 Nalej - All Rights Reserved
+ * Copyright 2019 Nalej
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package latency
@@ -15,27 +27,28 @@ import (
 	"sync"
 	"time"
 )
+
 // TTL -> 1 day. After 24 hours, the record will be deleted
-const ttlExpired = time.Duration(24)*time.Hour
+const ttlExpired = time.Duration(24) * time.Hour
 const rowNotFound = "not found"
 
 const limitTime = time.Duration(5) * time.Minute
 
 type ScyllaProvider struct {
-	Address string
-	Port int
+	Address  string
+	Port     int
 	Keyspace string
-	Session *gocql.Session
+	Session  *gocql.Session
 	sync.Mutex
 }
 
-func NewScyllaProvider (address string, port int, keyspace string) * ScyllaProvider {
-	provider := ScyllaProvider{Address:address, Port: port, Keyspace: keyspace, Session: nil}
+func NewScyllaProvider(address string, port int, keyspace string) *ScyllaProvider {
+	provider := ScyllaProvider{Address: address, Port: port, Keyspace: keyspace, Session: nil}
 	provider.connect()
 	return &provider
 }
 
-func(sp * ScyllaProvider) connect() derrors.Error{
+func (sp *ScyllaProvider) connect() derrors.Error {
 	// connect to the cluster
 	conf := gocql.NewCluster(sp.Address)
 	conf.Keyspace = sp.Keyspace
@@ -52,20 +65,20 @@ func(sp * ScyllaProvider) connect() derrors.Error{
 	return nil
 }
 
-func (sp *ScyllaProvider) checkAndConnect () derrors.Error{
+func (sp *ScyllaProvider) checkAndConnect() derrors.Error {
 
-	if sp.Session == nil{
+	if sp.Session == nil {
 		log.Info().Msg("session no created, trying to reconnect...")
 		// try to reconnect
 		err := sp.connect()
-		if err != nil  {
+		if err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (sp *ScyllaProvider) Disconnect () {
+func (sp *ScyllaProvider) Disconnect() {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -77,7 +90,7 @@ func (sp *ScyllaProvider) Disconnect () {
 }
 
 // -- Latency
-func (sp * ScyllaProvider) AddPingLatency(latency entities.Latency ) derrors.Error {
+func (sp *ScyllaProvider) AddPingLatency(latency entities.Latency) derrors.Error {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -88,10 +101,9 @@ func (sp * ScyllaProvider) AddPingLatency(latency entities.Latency ) derrors.Err
 		return err
 	}
 
-
 	// insert the application instance
-	stmt, names := qb.Insert("latency").Columns("organization_id","device_group_id", "device_id",
-		"inserted","latency").TTL(ttlExpired).ToCql()
+	stmt, names := qb.Insert("latency").Columns("organization_id", "device_group_id", "device_id",
+		"inserted", "latency").TTL(ttlExpired).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(latency)
 	cqlErr := q.ExecRelease()
 
@@ -102,7 +114,7 @@ func (sp * ScyllaProvider) AddPingLatency(latency entities.Latency ) derrors.Err
 	return nil
 }
 
-func (sp * ScyllaProvider) GetLatency(organizationID string, deviceGroupID string, deviceID string) ([]*entities.Latency, derrors.Error){
+func (sp *ScyllaProvider) GetLatency(organizationID string, deviceGroupID string, deviceID string) ([]*entities.Latency, derrors.Error) {
 	sp.Lock()
 	defer sp.Unlock()
 
@@ -115,12 +127,12 @@ func (sp * ScyllaProvider) GetLatency(organizationID string, deviceGroupID strin
 	latencyList := make([]*entities.Latency, 0)
 	stmt, names := qb.Select("latency").Where(qb.Eq("organization_id")).
 		Where(qb.Eq("device_group_id")).Where(qb.Eq("device_id")).
-		OrderBy("device_id", qb.DESC ).OrderBy("inserted", qb.DESC ).ToCql()
+		OrderBy("device_id", qb.DESC).OrderBy("inserted", qb.DESC).ToCql()
 
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		"organization_id": organizationID,
 		"device_group_id": deviceGroupID,
-		"device_id": deviceID,
+		"device_id":       deviceID,
 	})
 
 	cqlErr := gocqlx.Select(&latencyList, q.Query)
@@ -128,7 +140,7 @@ func (sp * ScyllaProvider) GetLatency(organizationID string, deviceGroupID strin
 	if cqlErr != nil {
 		if cqlErr.Error() == rowNotFound {
 			return latencyList, nil
-		}else {
+		} else {
 			return nil, derrors.AsError(cqlErr, "cannot list device latencies")
 		}
 	}
@@ -136,7 +148,7 @@ func (sp * ScyllaProvider) GetLatency(organizationID string, deviceGroupID strin
 	return latencyList, nil
 }
 
-func (sp * ScyllaProvider) RemoveLatency(organizationID string, deviceGroupID string, deviceID string) derrors.Error{
+func (sp *ScyllaProvider) RemoveLatency(organizationID string, deviceGroupID string, deviceID string) derrors.Error {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -158,10 +170,9 @@ func (sp * ScyllaProvider) RemoveLatency(organizationID string, deviceGroupID st
 
 }
 
-
 // -- Last Latency
 // GetLastPingLatency get the las latency measure of a device
-func (sp * ScyllaProvider) GetLastLatency (organizationID string, deviceGroupID string, deviceID string) (*entities.Latency, derrors.Error) {
+func (sp *ScyllaProvider) GetLastLatency(organizationID string, deviceGroupID string, deviceID string) (*entities.Latency, derrors.Error) {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -180,14 +191,14 @@ func (sp * ScyllaProvider) GetLastLatency (organizationID string, deviceGroupID 
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindMap(qb.M{
 		"organization_id": organizationID,
 		"device_group_id": deviceGroupID,
-		"device_id": deviceID,
+		"device_id":       deviceID,
 	})
 
 	cqlErr := q.GetRelease(&latency)
 	if cqlErr != nil {
 		if cqlErr.Error() == rowNotFound {
 			return entities.NewEmptyLatency(), nil
-		}else{
+		} else {
 			return nil, derrors.AsError(err, "cannot Cannot retrieve last latency")
 		}
 	}
@@ -196,7 +207,7 @@ func (sp * ScyllaProvider) GetLastLatency (organizationID string, deviceGroupID 
 
 }
 
-func (sp * ScyllaProvider) AddLastLatency (latency entities.Latency) derrors.Error {
+func (sp *ScyllaProvider) AddLastLatency(latency entities.Latency) derrors.Error {
 
 	sp.Lock()
 	defer sp.Unlock()
@@ -208,8 +219,8 @@ func (sp * ScyllaProvider) AddLastLatency (latency entities.Latency) derrors.Err
 	}
 
 	// insert the application instance
-	stmt, names := qb.Insert("lastlatency").Columns("organization_id","device_group_id", "device_id",
-		"inserted","latency").TTL(ttlExpired).ToCql()
+	stmt, names := qb.Insert("lastlatency").Columns("organization_id", "device_group_id", "device_id",
+		"inserted", "latency").TTL(ttlExpired).ToCql()
 	q := gocqlx.Query(sp.Session.Query(stmt), names).BindStruct(latency)
 	cqlErr := q.ExecRelease()
 
@@ -220,7 +231,7 @@ func (sp * ScyllaProvider) AddLastLatency (latency entities.Latency) derrors.Err
 	return nil
 }
 
-func (sp * ScyllaProvider) GetGroupLastLatencies(organizationID string, deviceGroupID string)([]*entities.Latency, derrors.Error) {
+func (sp *ScyllaProvider) GetGroupLastLatencies(organizationID string, deviceGroupID string) ([]*entities.Latency, derrors.Error) {
 	sp.Lock()
 	defer sp.Unlock()
 
@@ -243,7 +254,7 @@ func (sp * ScyllaProvider) GetGroupLastLatencies(organizationID string, deviceGr
 	if cqlErr != nil {
 		if cqlErr.Error() == rowNotFound {
 			return latencyList, nil
-		}else {
+		} else {
 			return nil, derrors.AsError(cqlErr, "cannot list group latencies")
 		}
 	}
