@@ -1,0 +1,47 @@
+parameters:
+  kubeconfig: "$HOME/.kube/config"
+  namespace: "nalej"
+
+steps:
+  - script: |
+      isOk=1
+      for (( i=0; i<36; i++ ))
+      do
+        expected=$(kubectl --kubeconfig ${{ parameters.kubeconfig }} -n ${{ parameters.namespace }} get deployment device-manager -o=jsonpath='{.spec.replicas}')
+        if [ $? -ne 0 ]; then
+          exit 1
+        fi
+        ready=$(kubectl --kubeconfig ${{ parameters.kubeconfig }} -n ${{ parameters.namespace }} get deployment device-manager -o=jsonpath='{.status.readyReplicas}')
+        if [ $? -ne 0 ]; then
+          exit 1
+        fi
+        echo "Expected: $expected"
+        echo "Ready: $ready"
+        if [ "$expected" == "$ready" ]; then
+          isOk=0
+          break
+        else
+          echo "Not ready yet, waiting 10 seconds"
+          echo ""
+          sleep 10
+        fi
+      done
+      exit $isOk
+    displayName: Verify device-manager deployment is ready
+
+  - script: |
+      isOk=1
+      for (( i=0; i<36; i++ ))
+      do
+        jobs=$(kubectl --kubeconfig ${{ parameters.kubeconfig }} -n ${{ parameters.namespace }} get jobs -ojson | jq '(.items | length) >= reduce .items[].status.succeeded as $completed (0; . + $completed)')
+        if [ "$jobs" == "true" ]; then
+          isOk=0
+          break
+        else
+          echo "Jobs not executed yet, waiting 10 seconds"
+          echo ""
+          sleep 10
+        fi
+      done
+      exit $isOk
+    displayName: Verify device-manager jobs are executed successfully
