@@ -1,13 +1,13 @@
 # device-manager
 
-This component is in charge of Device and Device groups operations.
+This component is in charge of Device and Device group operations.
 
 ## Getting Started
 
 ### Prerequisites
 
-* [system-model](https://github.com/nalej/system-model)
-* [authx](https://github.com/nalej/authx)
+* [`system-model`](https://github.com/nalej/system-model)
+* [`authx`](https://github.com/nalej/authx)
 
 ### Build and compile
 
@@ -17,8 +17,7 @@ In order to build and compile this repository use the provided Makefile:
 make all
 ```
 
-This operation generates the binaries for this repo, download dependencies,
-run existing tests and generate ready-to-deploy Kubernetes files.
+This operation generates the binaries for this repo, downloads the required dependencies, runs existing tests and generates ready-to-deploy Kubernetes files.
 
 ### Run tests
 
@@ -27,6 +26,8 @@ Tests are executed using Ginkgo. To run all the available tests:
 ```shell script
 make test
 ```
+
+### Integration tests 
 
 To enable and run integration tests you will need to have running instances of all the prerequisites
 and declare the following environment variables:
@@ -53,7 +54,7 @@ dep ensure -update -v
 
 ## User client interface
 
-To interact with this component, you can leverage the [public-api-cli](https://github.com/nalej/public-api).
+To interact with this component, you can use the [public-api-cli](https://github.com/nalej/public-api).
 The command that interacts with this component is `device`.
 
 Example:
@@ -70,7 +71,7 @@ Please read [contributing.md](contributing.md) for details on our code of conduc
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/nalej/device-manager/tags). 
+We use [SemVer](http://semver.org/) for versioning. For the available versions, see the [tags on this repository](https://github.com/nalej/device-manager/tags). 
 
 ## Authors
 
